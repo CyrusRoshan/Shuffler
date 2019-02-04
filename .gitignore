@@ -58,3 +58,6 @@ buck-out/
 # Jest
 #
 .jest/
+
+# ios dev info
+ios/
