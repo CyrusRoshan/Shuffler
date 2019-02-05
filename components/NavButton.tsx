@@ -1,4 +1,3 @@
-// components/Post.tsx
 import React from 'react'
 import { 
   Image,
@@ -55,14 +54,10 @@ export class NavButton extends React.Component<Props> {
     )
   }
 }
+
 // styles
 const styles = StyleSheet.create({
   root: {
-    // padding: 10,
-    // paddingLeft: 10,
-    // paddingRight: 10,
-    // borderRadius: 100,
-
     marginTop: 5,
     marginBottom: 10,
 
@@ -87,7 +82,6 @@ const styles = StyleSheet.create({
     textAlign: 'left',
     color: iOSColors.white,
     fontSize: 26,
-    // fontWeight: '500',
     
     padding: 5,
     marginRight: 10,

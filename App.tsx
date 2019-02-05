@@ -1,12 +1,3 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- * @flow
- * @lint-ignore-every XPLATJSCOPYRIGHT1
- */
-
 import React from 'react';
 import { Component } from 'react';
 import { Platform, StyleSheet, Text, View } from 'react-native';
@@ -68,11 +59,11 @@ export default class App extends Component<Props> {
 
 const styles = StyleSheet.create({
   container: {
-    // ...ifIphoneX({
-    //   paddingTop: 50,
-    // }, {
-    //   paddingTop: 20,
-    // }),
+    ...ifIphoneX({
+      paddingBottom: 50,
+    }, {
+      paddingBottom: 20,
+    }),
     backgroundColor: iOSColors.white,
     flex: 1,
   },
