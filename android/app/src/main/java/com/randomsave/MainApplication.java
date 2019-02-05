@@ -1,4 +1,4 @@
-package com.randomsave;
+package com.shuffler;
 
 import android.app.Application;
 

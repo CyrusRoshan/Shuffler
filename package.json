@@ -1,5 +1,5 @@
 {
-  "name": "RandomSave",
+  "name": "shuffler",
   "version": "0.0.1",
   "private": true,
   "scripts": {
@@ -10,8 +10,12 @@
     "@types/react-native-vector-icons": "^4.6.4",
     "react": "16.6.3",
     "react-native": "0.58.3",
+    "react-native-navigation": "^2.9.0",
     "react-native-typography": "^1.4.0",
-    "react-native-vector-icons": "^6.2.0"
+    "react-native-vector-icons": "^6.2.0",
+    "react-native-fit-image": "^1.5.4",
+    "react-native-iphone-x-helper": "^1.2.0",
+    "react-native-typescript-transformer": "^1.2.11"
   },
   "devDependencies": {
     "@types/jest": "^23.3.13",
@@ -23,9 +27,6 @@
     "jest": "24.0.0",
     "metro-react-native-babel-preset": "0.51.1",
     "react-addons-test-utils": "^15.6.2",
-    "react-native-fit-image": "^1.5.4",
-    "react-native-iphone-x-helper": "^1.2.0",
-    "react-native-typescript-transformer": "^1.2.11",
     "react-test-renderer": "16.6.3",
     "ts-jest": "^23.10.5",
     "typescript": "^3.3.1"
