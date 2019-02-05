@@ -1,93 +1,42 @@
-import React from 'react';
-import { Component } from 'react';
-import { Platform, StyleSheet, Text, View } from 'react-native';
+import { createStackNavigator, createAppContainer } from 'react-navigation';
 
-import { ifIphoneX } from 'react-native-iphone-x-helper';
-import { iOSUIKit, iOSColors } from 'react-native-typography';
-import AntIcon from 'react-native-vector-icons/AntDesign';
-import Feather from 'react-native-vector-icons/Feather';
+import HomeScreen from './components/HomeScreen'
 
-import { NavButton } from './components/NavButton';
+const NavigationStack = createStackNavigator(
+  {
+    Home: {
+      screen: HomeScreen,
+      navigationOptions: {
+        header: null,
+      },
+    },
 
-type Props = {};
-export default class App extends Component<Props> {
-  render() {
-    const shuffleIcon = <AntIcon name="retweet" size={35} color={iOSColors.white}/>
-    const favoritesIcon = <Feather name="star" size={35} color={iOSColors.white}/>
-    const settingsIcon = <Feather name="settings" size={35} color={iOSColors.white}/>
+    AllSaved: {
+      screen: HomeScreen, // todo: change
+      navigationOptions: {
+        header: null,
+      },
+    },
 
-    return (
-      <View style={styles.container}>
-        <View style={styles.navButtonHolder}>
+    Favorites: {
+      screen: HomeScreen, // todo: change
+      navigationOptions: {
+        header: null,
+      },
+    },
 
-          <Text style={[iOSUIKit.largeTitleEmphasized, styles.title]}>shuffler</Text>
-        
-          <NavButton 
-            title="all saved posts" 
-            icon={shuffleIcon}
-            style={{
-              iconBackgroundColor: iOSColors.green,
-              backgroundColor: 'transparent',
-              titleColor: iOSColors.green,
-            }}
-          ></NavButton>
+    Settings: {
+      screen: HomeScreen, // todo: change
+      navigationOptions: {
+        header: null,
+      },
+    },
+  },
 
-          <NavButton 
-            title="offline favorites" 
-            icon={favoritesIcon}
-            style={{
-              iconBackgroundColor: iOSColors.yellow,
-              backgroundColor: 'transparent',
-              titleColor: iOSColors.orange,
-            }}
-          ></NavButton>
-
-          <NavButton
-            title="settings"
-            icon={settingsIcon}
-            style={{
-              iconBackgroundColor: iOSColors.gray,
-              backgroundColor: 'transparent',
-              titleColor: iOSColors.gray,
-            }}
-          ></NavButton>
-        </View>
-      </View>
-    );
+  {
+    initialRouteName: 'Home',
   }
-}
+);
 
-const styles = StyleSheet.create({
-  container: {
-    ...ifIphoneX({
-      paddingBottom: 50,
-    }, {
-      paddingBottom: 20,
-    }),
-    backgroundColor: iOSColors.white,
-    flex: 1,
-  },
-
-  title: {
-    fontSize: 50,
-    lineHeight: 50,
-    fontWeight: '900',
-
-    marginBottom: 20,
-    
-    textAlign: 'center',
-    alignSelf: 'stretch',
-    color: iOSColors.black,
-  },
-
-  navButtonHolder: {
-    flex: 1,
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'flex-start',
-
-    paddingLeft: 40,
-    paddingRight: 40,
-    paddingTop: 10,
-  },
-});
+const AppContainer = createAppContainer(NavigationStack);
+export default AppContainer;

@@ -61,3 +61,6 @@ buck-out/
 
 # ios dev info
 ios/
+
+# vs code
+.vscode/

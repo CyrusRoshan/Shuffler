@@ -1,11 +1,13 @@
 import React from 'react'
-import { 
+import {
   Image,
   Button,
-  StyleSheet, 
-  Text, 
+  StyleSheet,
+  Text,
   View,
   TouchableOpacity,
+  NativeSyntheticEvent,
+  NativeTouchEvent,
 } from 'react-native'
 
 import { iOSUIKit, iOSColors } from 'react-native-typography';
@@ -20,7 +22,7 @@ export interface Props {
   title: string
   icon: React.ClassicElement<any>
   style?: Style
-  onClick?: () => void
+  onPress?: (event: NativeSyntheticEvent<NativeTouchEvent>) => void
 }
 
 export class NavButton extends React.Component<Props> {
@@ -40,8 +42,8 @@ export class NavButton extends React.Component<Props> {
     }
 
     return (
-      <TouchableOpacity style={[styles.root, backgroundColor]}>
-        <View style={[styles.container]}>
+      <TouchableOpacity style={[styles.root, backgroundColor]} onPress={this.props.onPress}>
+        <View style={styles.container}>
           <View style={[styles.iconBox, iconBackgroundColor]}>
             {this.props.icon}
           </View>
@@ -82,7 +84,7 @@ const styles = StyleSheet.create({
     textAlign: 'left',
     color: iOSColors.white,
     fontSize: 26,
-    
+
     padding: 5,
     marginRight: 10,
     marginLeft: 10,
