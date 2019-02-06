@@ -44,7 +44,7 @@ export default class CustomCarousel extends Component<Props, State> {
         renderItem={(e) => {
           return (
             <Slide
-              favorited={false} // TODO: add favorite system
+              offline={false} // TODO: add save system
               title={e.item.title}
               uri={e.item.uri}
               username={e.item.username}

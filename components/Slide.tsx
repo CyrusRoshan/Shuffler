@@ -19,7 +19,7 @@ import Colors from '../constants/Colors';
 
 export interface Props {
   title: string
-  favorited: boolean
+  offline: boolean
   uri: string
   username?: string
   subreddit: string
@@ -27,7 +27,7 @@ export interface Props {
 }
 
 interface State {
-  favorited: boolean,
+  offline: boolean,
   slideWidth: number,
   widthFitter: object
   heightFitter: object
@@ -46,7 +46,7 @@ export default class Slide extends React.Component<Props, State> {
     const windowWidth = Dimensions.get('window').width;
 
     this.state = {
-      favorited: props.favorited,
+      offline: props.offline,
       slideWidth: (windowWidth - SLIDEPADDING * 2),
       widthFitter: {
         padding: SLIDEPADDING,
@@ -116,16 +116,16 @@ export default class Slide extends React.Component<Props, State> {
               <Text
                 adjustsFontSizeToFit={true}
                 numberOfLines={1}
-                style={styles.footerText}
+                style={[styles.footerText, styles.postAge]}
               >
                 {this.props.postAge}
               </Text>
             </View>
           </View>
 
-          <View style={styles.favoriteIconBox}>
+          <View style={styles.offlineIconBox}>
             <TouchableOpacity>
-              <Feather style={styles.favoriteIcon} name='heart' size={35} color={Colors.white} />
+              <Feather style={styles.offlineIcon} name='download-cloud' size={35} color={Colors.white} />
             </TouchableOpacity>
           </View>
         </View>
@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 10,
   },
 
-  favoriteIconBox: {
+  offlineIconBox: {
     height: '100%',
     padding: 10,
     backgroundColor: Colors.darkGray,
@@ -205,16 +205,15 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 10,
   },
 
-  favoriteIcon: {
+  offlineIcon: {
     flex: 1,
-    fontSize: 20,
+    fontSize: 25,
   },
 
   footerInfo: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingBottom: 2,
     justifyContent: 'flex-start',
   },
 
@@ -228,6 +227,10 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: TEXTCOLOR,
     fontSize: 20,
+  },
+
+  postAge: {
+    paddingRight: 10,
   },
 
   combiner: {

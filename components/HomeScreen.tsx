@@ -2,7 +2,6 @@ import React from 'react';
 import { Component } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-import AntIcon from 'react-native-vector-icons/AntDesign';
 import Feather from 'react-native-vector-icons/Feather';
 
 import { ifIphoneX } from 'react-native-iphone-x-helper';
@@ -17,8 +16,8 @@ export interface Props {
 
 export default class HomeScreen extends Component<Props> {
   render() {
-    const shuffleIcon = <AntIcon name='retweet' size={35} color={Colors.darkBlack} />
-    const favoritesIcon = <Feather name='star' size={35} color={Colors.darkBlack} />
+    const shuffleIcon = <Feather name='layers' size={35} color={Colors.darkBlack} />
+    const favoritesIcon = <Feather name='wifi-off' size={35} color={Colors.darkBlack} />
     const settingsIcon = <Feather name='settings' size={35} color={Colors.darkBlack} />
 
     return (
