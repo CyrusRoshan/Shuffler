@@ -1,6 +1,7 @@
 import { createStackNavigator, createAppContainer } from 'react-navigation';
 
 import HomeScreen from './components/HomeScreen'
+import AllSavedScreen from './components/AllSavedScreen'
 
 const NavigationStack = createStackNavigator(
   {
@@ -12,7 +13,7 @@ const NavigationStack = createStackNavigator(
     },
 
     AllSaved: {
-      screen: HomeScreen, // todo: change
+      screen: AllSavedScreen,
       navigationOptions: {
         header: null,
       },
@@ -34,7 +35,7 @@ const NavigationStack = createStackNavigator(
   },
 
   {
-    initialRouteName: 'Home',
+    initialRouteName: 'AllSaved', // todo: change back to home
   }
 );
 

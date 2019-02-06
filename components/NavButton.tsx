@@ -1,4 +1,4 @@
-import React from 'react'
+import React from 'react';
 import {
   Image,
   Button,
@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   NativeSyntheticEvent,
   NativeTouchEvent,
-} from 'react-native'
+} from 'react-native';
 
 import { iOSUIKit, iOSColors } from 'react-native-typography';
 
@@ -25,7 +25,7 @@ export interface Props {
   onPress?: (event: NativeSyntheticEvent<NativeTouchEvent>) => void
 }
 
-export class NavButton extends React.Component<Props> {
+export default class NavButton extends React.Component<Props> {
   constructor(props: Props) {
     super(props)
   }

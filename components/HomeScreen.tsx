@@ -9,7 +9,7 @@ import Feather from 'react-native-vector-icons/Feather';
 import { ifIphoneX } from 'react-native-iphone-x-helper';
 import { NavigationScreenProp } from 'react-navigation';
 
-import { NavButton } from './NavButton';
+import NavButton from './NavButton';
 
 export interface Props {
   navigation: NavigationScreenProp<any>
@@ -70,8 +70,8 @@ const styles = StyleSheet.create({
     ...ifIphoneX({
       paddingBottom: 50,
     }, {
-        paddingBottom: 20,
-      }),
+      paddingBottom: 20,
+    }),
     backgroundColor: iOSColors.white,
     flex: 1,
   },
