@@ -13,33 +13,42 @@ import {
   ImageLoadEventData
 } from 'react-native';
 
-import { iOSUIKit, iOSColors } from 'react-native-typography';
+import Colors from '../constants/Colors';
+import Feather from 'react-native-vector-icons/Feather';
 
 export interface Props {
   title: string
+  favorited: boolean
   uri: string
-  subtitle: string
+  username: string
+  subreddit: string
 }
 
 interface State {
+  favorited: boolean,
   slideWidth: number,
   widthFitter: object
   heightFitter: object
 }
 
+const SLIDEPADDING = 10;
+const IMAGEPADDING = 0;
+
+const SLIDECOLOR = Colors.darkBlack;
+const TEXTCOLOR = Colors.lightWhite;
 
 export default class Slide extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props)
 
-    const padding = 10;
     const windowWidth = Dimensions.get('window').width// - (2 * padding);
 
     this.state = {
-      slideWidth: (windowWidth - padding * 2),
+      favorited: props.favorited,
+      slideWidth: (windowWidth - SLIDEPADDING * 2),
       widthFitter: {
-        paddingLeft: padding,
-        paddingRight: padding,
+        paddingLeft: SLIDEPADDING,
+        paddingRight: SLIDEPADDING,
         width: windowWidth,
         minWidth: windowWidth,
       },
@@ -49,7 +58,7 @@ export default class Slide extends React.Component<Props, State> {
 
   componentWillMount() {
     Image.getSize(this.props.uri, (width, height) => {
-      const newImageHeight = (this.state.slideWidth) * (height / width);
+      const newImageHeight = (this.state.slideWidth - IMAGEPADDING * 2) * (height / width);
 
       this.setState({
         heightFitter: {
@@ -64,25 +73,55 @@ export default class Slide extends React.Component<Props, State> {
 
   render() {
     return (
-      <TouchableOpacity style={[styles.root, this.state.widthFitter]}>
-        <View style={styles.container}>
-          <Text style={[iOSUIKit.title3, styles.title]}>
-            Title: {this.props.title}
+      <View style={[styles.root, this.state.widthFitter]}>
+        <View style={styles.header}>
+          <Text
+            style={styles.title}
+            adjustsFontSizeToFit={true}
+            numberOfLines={2}
+            >
+            {this.props.title}
           </Text>
 
-          <Image style={[styles.image, this.state.heightFitter]}
-            source={{
-              uri: this.props.uri,
-              cache: 'force-cache',
-            }}
-            resizeMode='contain'
-          ></Image>
-
-          <Text style={iOSUIKit.subheadEmphasizedWhite}>
-            Subtitle: {this.props.subtitle}
-          </Text>
+          <View style={styles.favoriteIconBox}>
+            <Feather style={styles.favoriteIcon} name='heart' size={35} color={Colors.white} />
+          </View>
         </View>
-      </TouchableOpacity>
+
+        <View style={styles.imageContainer}>
+          <TouchableOpacity>
+            <Image style={[styles.image, this.state.heightFitter]}
+              source={{
+                uri: this.props.uri,
+                cache: 'force-cache',
+              }}
+              resizeMode='contain'
+            ></Image>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.footer}>
+          <TouchableOpacity style={[styles.footerPart, styles.leftFooter]}>
+            <Text
+              adjustsFontSizeToFit={true}
+              numberOfLines={1}
+              style={styles.footerText}
+            >
+              /u/{this.props.username}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={[styles.footerPart, styles.rightFooter]}>
+            <Text
+              adjustsFontSizeToFit={true}
+              numberOfLines={1}
+              style={styles.footerText}
+            >
+              /r/{this.props.subreddit}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
     )
   }
 }
@@ -93,15 +132,42 @@ const styles = StyleSheet.create({
     marginTop: 5,
     marginBottom: 10,
 
-    backgroundColor: iOSColors.black,
-    flex: 1,
-  },
-
-  container: {
     flex: 1,
     flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+
+  header: {
+    backgroundColor: SLIDECOLOR,
+
+    width: '100%',
+    height: 60,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
+  },
+
+  favoriteIconBox: {
+    height: '100%',
+    padding: 10,
+    backgroundColor: Colors.darkRed,
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
+  },
+
+  favoriteIcon: {
+    flex: 1,
+    marginTop: 3,
+  },
+
+  imageContainer: {
+    width: '100%',
+    paddingLeft: IMAGEPADDING,
+    paddingRight: IMAGEPADDING,
+    backgroundColor: SLIDECOLOR,
   },
 
   image: {
@@ -110,14 +176,46 @@ const styles = StyleSheet.create({
   },
 
   title: {
-    fontFamily: 'Verdana',
-    textAlign: 'left',
-    color: iOSColors.white,
-    fontSize: 26,
+    padding: 0,
+    paddingLeft: 10,
+    paddingRight: 5,
+    flex: 1,
 
-    padding: 5,
-    marginRight: 10,
-    marginLeft: 10,
-    marginTop: 5,
+    fontFamily: 'Verdana',
+    fontWeight: '900',
+    textAlign: 'left',
+    color: TEXTCOLOR,
+    fontSize: 28,
   },
+
+  footer: {
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'space-evenly',
+  },
+
+  footerPart: {
+    padding: 5,
+    paddingLeft: 7,
+    paddingTop: 7,
+    paddingBottom: 7,
+  },
+
+  leftFooter: {
+    flex: 1,
+    backgroundColor: Colors.darkBlue,
+    borderBottomLeftRadius: 10,
+  },
+
+  rightFooter: {
+    flex: 1,
+    backgroundColor: Colors.darkPurple,
+    borderBottomRightRadius: 10,
+  },
+
+  footerText: {
+    fontWeight: '600',
+    color: TEXTCOLOR,
+    fontSize: 16,
+  }
 })

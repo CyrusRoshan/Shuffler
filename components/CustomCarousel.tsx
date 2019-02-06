@@ -23,26 +23,15 @@ import Feather from 'react-native-vector-icons/Feather';
 import Slide, { Props as SlideProps } from './Slide';
 
 export interface Props {
-
+  // TODO: add slides as input here
 }
 
 export interface State {
   currentIndex: number
 }
 
-const SLIDEWIDTH = 200
-
 export default class CustomCarousel extends Component<Props, State> {
   render() {
-    let entries = ENTRIES.map((e, i) => {
-      return <Slide
-        title={e.title}
-        subtitle={e.subtitle}
-        uri={e.uri}
-        key={i}
-      />
-    })
-
     return (
       <FlatList
         style={styles.root}
@@ -56,22 +45,16 @@ export default class CustomCarousel extends Component<Props, State> {
         renderItem={(e) => {
           return (
             <Slide
+              favorited={false} // TODO: add favorite system
               title={e.item.title}
-              subtitle={e.item.subtitle}
               uri={e.item.uri}
+              username={e.item.username}
+              subreddit={e.item.subreddit}
             />
           )
         }}
         keyExtractor={(item, index) => index.toString()}
       />
-      // <ScrollView
-      //   style={styles.root}
-      //   pagingEnabled={true}
-      //   horizontal={true}
-      //   snapToAlignment='center'
-      // >
-      //   {entries}
-      // </ScrollView>
     );
   };
 }
@@ -79,44 +62,50 @@ export default class CustomCarousel extends Component<Props, State> {
 const styles = StyleSheet.create({
   root: {
     width: '100%',
-    backgroundColor: 'black',
   }
 });
 
 const ENTRIES = [
   {
-    title: 'short 1',
-    subtitle: 'suuuuubtitle',
+    title: 'Here is an example title that seems to take up a bit of space',
     uri: 'https://i.redd.it/npco02i3kre21.jpg',
+    username: 'example_username',
+    subreddit: 'example_subreddit',
   },
   {
     title: 'example title 2',
-    subtitle: 'suuuuubtitle',
     uri: 'https://i.redd.it/ggf74213hre21.jpg',
+    username: 'example_username',
+    subreddit: 'example_subreddit',
   },
   {
     title: 'example title 3',
-    subtitle: 'suuuuubtitle',
     uri: 'https://i.redd.it/2ucsi86mare21.jpg',
+    username: 'example_username',
+    subreddit: 'example_subreddit',
   },
   {
     title: 'example title 4',
-    subtitle: 'suuuuubtitle',
-    uri: 'https://i.imgur.com/h5s1ySA.jpg'
+    uri: 'https://i.imgur.com/h5s1ySA.jpg',
+    username: 'example_username',
+    subreddit: 'example_subreddit',
   },
   {
     title: 'example title 5',
-    subtitle: 'suuuuubtitle',
-    uri: 'https://i.imgur.com/h5s1ySA.jpg'
+    uri: 'https://i.imgur.com/h5s1ySA.jpg',
+    username: 'example_username',
+    subreddit: 'example_subreddit',
   },
   {
     title: 'example title 6',
-    subtitle: 'suuuuubtitle',
-    uri: 'https://i.imgur.com/h5s1ySA.jpg'
+    uri: 'https://i.imgur.com/h5s1ySA.jpg',
+    username: 'example_username',
+    subreddit: 'example_subreddit',
   },
   {
     title: 'example title 7',
-    subtitle: 'suuuuubtitle',
-    uri: 'https://i.imgur.com/h5s1ySA.jpg'
+    uri: 'https://i.imgur.com/h5s1ySA.jpg',
+    username: 'example_username',
+    subreddit: 'example_subreddit',
   },
 ] as Array<SlideProps>
