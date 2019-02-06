@@ -20,6 +20,7 @@ import {
 import Feather from 'react-native-vector-icons/Feather';
 
 import Slide, { Props as SlideProps } from './Slide';
+import Colors from '../constants/Colors';
 
 export interface Props {
   // TODO: add slides as input here
@@ -34,11 +35,10 @@ export default class CustomCarousel extends Component<Props, State> {
     return (
       <FlatList
         style={styles.root}
-        pagingEnabled={true}
-        horizontal={true}
-        snapToAlignment='center'
+        horizontal={false}
+        // decelerationRate={0.998}
         showsHorizontalScrollIndicator={false}
-        showsVerticalScrollIndicator={false}
+        showsVerticalScrollIndicator={true}
 
         data={ENTRIES}
         renderItem={(e) => {
@@ -49,6 +49,7 @@ export default class CustomCarousel extends Component<Props, State> {
               uri={e.item.uri}
               username={e.item.username}
               subreddit={e.item.subreddit}
+              postAge={e.item.postAge}
             />
           )
         }}
@@ -60,6 +61,7 @@ export default class CustomCarousel extends Component<Props, State> {
 
 const styles = StyleSheet.create({
   root: {
+    backgroundColor: Colors.darkBlack,
     width: '100%',
   }
 });
@@ -70,41 +72,48 @@ const ENTRIES = [
     uri: 'https://i.redd.it/npco02i3kre21.jpg',
     username: 'example',
     subreddit: 'example',
+    postAge: '1mo',
   },
   {
     title: 'example title 2',
     uri: 'https://i.redd.it/ggf74213hre21.jpg',
     username: 'example_username',
     subreddit: 'example_subreddit',
+    postAge: '2d',
   },
   {
     title: 'example title 3',
     uri: 'https://i.redd.it/2ucsi86mare21.jpg',
     username: 'example_username',
     subreddit: 'example_subreddit',
+    postAge: '5hr',
   },
   {
     title: 'example title 4',
     uri: 'https://i.imgur.com/h5s1ySA.jpg',
     username: 'example_username',
     subreddit: 'example_subreddit',
+    postAge: '25m',
   },
   {
     title: 'example title 5',
     uri: 'https://i.imgur.com/h5s1ySA.jpg',
     username: 'example_username',
     subreddit: 'example_subreddit',
+    postAge: '5s',
   },
   {
     title: 'example title 6',
     uri: 'https://i.imgur.com/h5s1ySA.jpg',
     username: 'example_username',
     subreddit: 'example_subreddit',
+    postAge: '1hr',
   },
   {
     title: 'example title 7',
     uri: 'https://i.imgur.com/h5s1ySA.jpg',
     username: 'example_username',
     subreddit: 'example_subreddit',
+    postAge: '5.2y',
   },
 ] as Array<SlideProps>

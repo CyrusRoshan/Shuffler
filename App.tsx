@@ -35,7 +35,7 @@ const NavigationStack = createStackNavigator(
   },
 
   {
-    initialRouteName: 'Home', // todo: change back to home
+    initialRouteName: 'AllSaved', // todo: change back to home
   }
 );
 

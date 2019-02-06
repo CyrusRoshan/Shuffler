@@ -41,7 +41,6 @@ const styles = StyleSheet.create({
 
 		backgroundColor: Colors.lightBlack,
     flex: 1,
-    paddingBottom: 40,
 	},
 
 	title: {

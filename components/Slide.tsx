@@ -21,8 +21,9 @@ export interface Props {
   title: string
   favorited: boolean
   uri: string
-  username: string
+  username?: string
   subreddit: string
+  postAge: string
 }
 
 interface State {
@@ -33,23 +34,22 @@ interface State {
 }
 
 const SLIDEPADDING = 10;
-const IMAGEPADDING = 0;
+const IMAGEPADDING = 10;
 
-const SLIDECOLOR = Colors.darkBlack;
+const SLIDECOLOR = Colors.lightBlack;
 const TEXTCOLOR = Colors.lightWhite;
 
 export default class Slide extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props)
 
-    const windowWidth = Dimensions.get('window').width// - (2 * padding);
+    const windowWidth = Dimensions.get('window').width;
 
     this.state = {
       favorited: props.favorited,
       slideWidth: (windowWidth - SLIDEPADDING * 2),
       widthFitter: {
-        paddingLeft: SLIDEPADDING,
-        paddingRight: SLIDEPADDING,
+        padding: SLIDEPADDING,
         width: windowWidth,
         minWidth: windowWidth,
       },
@@ -76,17 +76,15 @@ export default class Slide extends React.Component<Props, State> {
     return (
       <View style={[styles.root, this.state.widthFitter]}>
         <View style={styles.header}>
-          <Text
-            style={styles.title}
-            adjustsFontSizeToFit={true}
-            numberOfLines={2}
-            >
-            {this.props.title}
-          </Text>
-
-          <View style={styles.favoriteIconBox}>
-            <Feather style={styles.favoriteIcon} name='heart' size={35} color={Colors.white} />
-          </View>
+          <TouchableOpacity>
+            <Text
+              style={styles.title}
+              adjustsFontSizeToFit={true}
+              numberOfLines={2}
+              >
+              {this.props.title}
+            </Text>
+          </TouchableOpacity>
         </View>
 
         <View style={styles.imageContainer}>
@@ -102,25 +100,34 @@ export default class Slide extends React.Component<Props, State> {
         </View>
 
         <View style={styles.footer}>
-          <TouchableOpacity style={[styles.footerPart, styles.leftFooter]}>
-            <Text
-              adjustsFontSizeToFit={true}
-              numberOfLines={1}
-              style={styles.footerText}
-            >
-              /u/{this.props.username}
-            </Text>
-          </TouchableOpacity>
+          <View style={styles.footerInfo}>
+            <TouchableOpacity style={styles.footerLink}>
+              <Text
+                adjustsFontSizeToFit={true}
+                numberOfLines={1}
+                style={styles.footerText}
+              >
+                {this.props.subreddit}
+              </Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity style={[styles.footerPart, styles.rightFooter]}>
-            <Text
-              adjustsFontSizeToFit={true}
-              numberOfLines={1}
-              style={styles.footerText}
-            >
-              /r/{this.props.subreddit}
-            </Text>
-          </TouchableOpacity>
+            <View style={styles.combiner}>
+              <Feather style={styles.footerText} name='clock' size={35} color={Colors.white} />
+              <Text
+                adjustsFontSizeToFit={true}
+                numberOfLines={1}
+                style={styles.footerText}
+              >
+                {this.props.postAge}
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.favoriteIconBox}>
+            <TouchableOpacity>
+              <Feather style={styles.favoriteIcon} name='heart' size={35} color={Colors.white} />
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     )
@@ -131,19 +138,25 @@ export default class Slide extends React.Component<Props, State> {
 const styles = StyleSheet.create({
   root: {
     marginTop: 5,
-    marginBottom: 10,
+    paddingBottom: 30,
 
     flex: 1,
     flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
+
+    shadowOpacity: 0.5,
+    shadowRadius: 10,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    }
   },
 
   header: {
     backgroundColor: SLIDECOLOR,
 
     width: '100%',
-    height: 60,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -151,72 +164,76 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 10,
   },
 
-  favoriteIconBox: {
-    height: '100%',
-    padding: 10,
-    backgroundColor: Colors.darkRed,
-    borderTopLeftRadius: 10,
-    borderTopRightRadius: 10,
-  },
-
-  favoriteIcon: {
+  title: {
+    paddingTop: 10,
+    paddingLeft: 12,
+    paddingRight: 12,
     flex: 1,
-    marginTop: 3,
+
+    fontWeight: '600',
+    textAlign: 'left',
+    color: TEXTCOLOR,
+    fontSize: 30,
   },
 
   imageContainer: {
     width: '100%',
-    paddingLeft: IMAGEPADDING,
-    paddingRight: IMAGEPADDING,
+    padding: IMAGEPADDING,
     backgroundColor: SLIDECOLOR,
   },
 
   image: {
+    borderRadius: 10,
     flex: 1,
     width: '100%',
-  },
-
-  title: {
-    padding: 0,
-    paddingLeft: 10,
-    paddingRight: 5,
-    flex: 1,
-
-    fontFamily: 'Verdana',
-    fontWeight: '900',
-    textAlign: 'left',
-    color: TEXTCOLOR,
-    fontSize: 28,
   },
 
   footer: {
+    backgroundColor: SLIDECOLOR,
     width: '100%',
     flexDirection: 'row',
     justifyContent: 'space-evenly',
-  },
-
-  footerPart: {
-    padding: 5,
-    paddingTop: 7,
-    paddingBottom: 7,
-  },
-
-  leftFooter: {
-    flex: 1,
-    backgroundColor: Colors.darkBlue,
     borderBottomLeftRadius: 10,
-  },
-
-  rightFooter: {
-    flex: 1,
-    backgroundColor: Colors.darkPurple,
     borderBottomRightRadius: 10,
   },
 
+  favoriteIconBox: {
+    height: '100%',
+    padding: 10,
+    backgroundColor: Colors.darkGray,
+    borderTopLeftRadius: 10,
+    borderBottomRightRadius: 10,
+  },
+
+  favoriteIcon: {
+    flex: 1,
+    fontSize: 20,
+  },
+
+  footerInfo: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingBottom: 2,
+    justifyContent: 'flex-start',
+  },
+
+  footerLink: {
+    paddingLeft: 15,
+    flex: 2,
+  },
+
   footerText: {
-    textAlign: 'center',
+    paddingRight: 5,
     fontWeight: '600',
     color: TEXTCOLOR,
-    fontSize: 16,
-  }
+    fontSize: 20,
+  },
+
+  combiner: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+  },
 })
