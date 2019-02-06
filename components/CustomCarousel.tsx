@@ -17,7 +17,6 @@ import {
   StatusBar,
 } from 'react-native';
 
-import { iOSUIKit, iOSColors } from 'react-native-typography';
 import Feather from 'react-native-vector-icons/Feather';
 
 import Slide, { Props as SlideProps } from './Slide';
@@ -69,8 +68,8 @@ const ENTRIES = [
   {
     title: 'Here is an example title that seems to take up a bit of space',
     uri: 'https://i.redd.it/npco02i3kre21.jpg',
-    username: 'example_username',
-    subreddit: 'example_subreddit',
+    username: 'example',
+    subreddit: 'example',
   },
   {
     title: 'example title 2',

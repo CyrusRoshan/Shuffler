@@ -2,13 +2,13 @@ import React from 'react';
 import { Component } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { iOSUIKit, iOSColors } from 'react-native-typography';
 import AntIcon from 'react-native-vector-icons/AntDesign';
 import Feather from 'react-native-vector-icons/Feather';
 
 import { ifIphoneX } from 'react-native-iphone-x-helper';
 import { NavigationScreenProp } from 'react-navigation';
 
+import Colors from '../constants/Colors';
 import NavButton from './NavButton';
 
 export interface Props {
@@ -17,23 +17,23 @@ export interface Props {
 
 export default class HomeScreen extends Component<Props> {
   render() {
-    const shuffleIcon = <AntIcon name='retweet' size={35} color={iOSColors.white} />
-    const favoritesIcon = <Feather name='star' size={35} color={iOSColors.white} />
-    const settingsIcon = <Feather name='settings' size={35} color={iOSColors.white} />
+    const shuffleIcon = <AntIcon name='retweet' size={35} color={Colors.darkBlack} />
+    const favoritesIcon = <Feather name='star' size={35} color={Colors.darkBlack} />
+    const settingsIcon = <Feather name='settings' size={35} color={Colors.darkBlack} />
 
     return (
       <View style={styles.container}>
         <View style={styles.navButtonHolder}>
 
-          <Text style={[iOSUIKit.largeTitleEmphasized, styles.title]}>shuffler</Text>
+          <Text style={styles.title}>shuffler</Text>
 
           <NavButton
             title='all saved posts'
             icon={shuffleIcon}
-            style={{
-              iconBackgroundColor: iOSColors.green,
+            styleOptions={{
+              iconBackgroundColor: Colors.lightGreen,
               backgroundColor: 'transparent',
-              titleColor: iOSColors.green,
+              titleColor: Colors.lightGreen,
             }}
             onPress={() => this.props.navigation.push('AllSaved')}
           ></NavButton>
@@ -41,10 +41,10 @@ export default class HomeScreen extends Component<Props> {
           <NavButton
             title='offline favorites'
             icon={favoritesIcon}
-            style={{
-              iconBackgroundColor: iOSColors.yellow,
+            styleOptions={{
+              iconBackgroundColor: Colors.lightYellow,
               backgroundColor: 'transparent',
-              titleColor: iOSColors.orange,
+              titleColor: Colors.lightYellow,
             }}
             onPress={() => this.props.navigation.push('Favorites')}
           ></NavButton>
@@ -52,10 +52,10 @@ export default class HomeScreen extends Component<Props> {
           <NavButton
             title='settings'
             icon={settingsIcon}
-            style={{
-              iconBackgroundColor: iOSColors.gray,
+            styleOptions={{
+              iconBackgroundColor: Colors.darkWhite,
               backgroundColor: 'transparent',
-              titleColor: iOSColors.gray,
+              titleColor: Colors.darkWhite,
             }}
             onPress={() => this.props.navigation.push('Settings')}
           ></NavButton>
@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
     }, {
       paddingBottom: 20,
     }),
-    backgroundColor: iOSColors.white,
+    backgroundColor: Colors.lightBlack,
     flex: 1,
   },
 
@@ -85,7 +85,7 @@ const styles = StyleSheet.create({
 
     textAlign: 'center',
     alignSelf: 'stretch',
-    color: iOSColors.black,
+    color: Colors.lightWhite,
   },
 
   navButtonHolder: {

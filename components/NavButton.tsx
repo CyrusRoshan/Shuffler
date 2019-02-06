@@ -10,7 +10,7 @@ import {
   NativeTouchEvent,
 } from 'react-native';
 
-import { iOSUIKit, iOSColors } from 'react-native-typography';
+import Colors from '../constants/Colors';
 
 export interface Style {
   iconBackgroundColor: string
@@ -21,7 +21,7 @@ export interface Style {
 export interface Props {
   title: string
   icon: React.ClassicElement<any>
-  style?: Style
+  styleOptions?: Style
   onPress?: (event: NativeSyntheticEvent<NativeTouchEvent>) => void
 }
 
@@ -35,10 +35,10 @@ export default class NavButton extends React.Component<Props> {
     let backgroundColor = undefined;
     let titleColor = undefined;
 
-    if (this.props.style) {
-      iconBackgroundColor = {backgroundColor: this.props.style.iconBackgroundColor}
-      backgroundColor = {backgroundColor: this.props.style.backgroundColor}
-      titleColor = {color: this.props.style.titleColor}
+    if (this.props.styleOptions) {
+      iconBackgroundColor = {backgroundColor: this.props.styleOptions.iconBackgroundColor}
+      backgroundColor = {backgroundColor: this.props.styleOptions.backgroundColor}
+      titleColor = {color: this.props.styleOptions.titleColor}
     }
 
     return (
@@ -48,7 +48,7 @@ export default class NavButton extends React.Component<Props> {
             {this.props.icon}
           </View>
 
-          <Text style={[iOSUIKit.title3, styles.title, titleColor]}>
+          <Text style={[styles.title, titleColor]}>
             {this.props.title}
           </Text>
         </View>
@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
     marginTop: 5,
     marginBottom: 10,
 
-    backgroundColor: iOSColors.black,
+    backgroundColor: Colors.darkBlack,
   },
 
   container: {
@@ -76,18 +76,18 @@ const styles = StyleSheet.create({
     padding: 7,
     borderRadius: 5,
 
-    backgroundColor: iOSColors.gray,
+    backgroundColor: Colors.darkGray,
   },
 
   title: {
     fontFamily: 'Verdana',
     textAlign: 'left',
-    color: iOSColors.white,
+    color: Colors.lightWhite,
     fontSize: 26,
 
     padding: 5,
     marginRight: 10,
     marginLeft: 10,
-    marginTop: 5,
+    marginBottom: 3,
   },
 })

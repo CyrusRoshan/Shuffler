@@ -13,8 +13,9 @@ import {
   ImageLoadEventData
 } from 'react-native';
 
-import Colors from '../constants/Colors';
 import Feather from 'react-native-vector-icons/Feather';
+
+import Colors from '../constants/Colors';
 
 export interface Props {
   title: string
@@ -196,7 +197,6 @@ const styles = StyleSheet.create({
 
   footerPart: {
     padding: 5,
-    paddingLeft: 7,
     paddingTop: 7,
     paddingBottom: 7,
   },
@@ -214,6 +214,7 @@ const styles = StyleSheet.create({
   },
 
   footerText: {
+    textAlign: 'center',
     fontWeight: '600',
     color: TEXTCOLOR,
     fontSize: 16,

@@ -5243,11 +5243,6 @@ react-native-typescript-transformer@^1.2.11:
     semver "^5.4.1"
     source-map "^0.5.6"
 
-react-native-typography@^1.4.0:
-  version "1.4.0"
-  resolved "https://registry.yarnpkg.com/react-native-typography/-/react-native-typography-1.4.0.tgz#166b79c618075882d8af07720649f5bc6523160d"
-  integrity sha512-3lToN3hRvPySw0PWCn1SjbDbNaqlV+FM22zSuymIc2ILGcfWbWcgZ+qdX+VKtHAewMG7Rp5yab2bmuaEYQlu3Q==
-
 react-native-vector-icons@^6.2.0:
   version "6.2.0"
   resolved "https://registry.yarnpkg.com/react-native-vector-icons/-/react-native-vector-icons-6.2.0.tgz#2682b718099eb9470c0defd38da47deb844a0f9c"
