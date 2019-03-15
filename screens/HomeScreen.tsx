@@ -7,8 +7,8 @@ import Feather from 'react-native-vector-icons/Feather';
 import { ifIphoneX } from 'react-native-iphone-x-helper';
 import { NavigationScreenProp } from 'react-navigation';
 
-import Colors from '@local/constants/Colors';
-import NavButton from '@local/components/NavButton';
+import Colors from '../constants/Colors';
+import NavButton from '../components/NavButton';
 
 export interface Props {
   navigation: NavigationScreenProp<any>

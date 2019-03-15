@@ -10,7 +10,7 @@ import {
 
 import Feather from 'react-native-vector-icons/Feather';
 
-import Colors from '@local/constants/Colors';
+import Colors from '../constants/Colors';
 
 export interface Props {
   title: string

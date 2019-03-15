@@ -5,8 +5,8 @@ import { StyleSheet, Text, View } from 'react-native';
 import { ifIphoneX } from 'react-native-iphone-x-helper';
 import { NavigationScreenProp } from 'react-navigation';
 
-import CustomCarousel from '@local/components/CustomCarousel';
-import Colors from '@local/constants/Colors';
+import CustomCarousel from '../components/CustomCarousel';
+import Colors from '../constants/Colors';
 
 export interface Props {
 	navigation: NavigationScreenProp<any>

@@ -5,7 +5,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { ifIphoneX } from 'react-native-iphone-x-helper';
 import { NavigationScreenProp } from 'react-navigation';
 
-import Colors from '@local/constants/Colors';
+import Colors from '../constants/Colors';
 
 export interface Props {
   navigation: NavigationScreenProp<any>

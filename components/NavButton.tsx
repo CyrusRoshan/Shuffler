@@ -8,7 +8,7 @@ import {
   NativeTouchEvent,
 } from 'react-native';
 
-import Colors from '@local/constants/Colors';
+import Colors from '../constants/Colors';
 
 export interface Style {
   iconBackgroundColor: string

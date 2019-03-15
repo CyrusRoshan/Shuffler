@@ -1,32 +1,13 @@
-import React from 'react';
+import Reddit from '../secrets/Reddit'; // NOTE: this is gitignored for obvious reasons
 
-import Reddit from '@local/secrets/Reddit'; // NOTE: this is gitignored for obvious reasons
+const BASE_URL = 'https://oauth.reddit.com';
 
-interface Props {
-  accessToken: string
-}
-
-// baseURL: 'https://oauth.reddit.com',
-
-interface State {
-  config: object
-}
-
-export default class Client extends React.Component<Props, State> {
-  constructor(props: Props) {
-    super(props)
+export default {
+  user: function(username: string) {
+    const path = BASE_URL + `/user/${username}`
+    return {
+      // comments
+    }
   }
+};
 
-  newRequest() {
-
-  }
-
-  // etc
-}
-
-    // const client = new snoowrap({
-    //   userAgent: Reddit.userAgent,
-    //   clientId: Reddit.clientID,
-    //   clientSecret: Reddit.exampleUser.access_token,
-    //   refreshToken: Reddit.exampleUser.refresh_token,
-    // });

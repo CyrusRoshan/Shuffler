@@ -5,8 +5,8 @@ import {
   FlatList,
 } from 'react-native';
 
-import Slide, { Props as SlideProps } from '@local/components/Slide';
-import Colors from '@local/constants/Colors';
+import Slide, { Props as SlideProps } from '../components/Slide';
+import Colors from '../constants/Colors';
 
 export interface Props {
   // TODO: add slides as input here
