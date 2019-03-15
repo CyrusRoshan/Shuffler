@@ -1,21 +1,16 @@
 import React from 'react';
 import {
   Image,
-  Button,
   StyleSheet,
   Text,
   View,
   TouchableOpacity,
-  NativeSyntheticEvent,
-  NativeTouchEvent,
   Dimensions,
-  LayoutChangeEvent,
-  ImageLoadEventData
 } from 'react-native';
 
 import Feather from 'react-native-vector-icons/Feather';
 
-import Colors from '../constants/Colors';
+import Colors from '@local/constants/Colors';
 
 export interface Props {
   title: string

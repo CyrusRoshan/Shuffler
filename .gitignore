@@ -64,3 +64,6 @@ ios/
 
 # vs code
 .vscode/
+
+# secrets
+secrets/

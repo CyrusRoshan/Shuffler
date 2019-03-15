@@ -1,26 +1,12 @@
 import React from 'react';
 import { Component } from 'react';
 import {
-  Image,
-  Button,
   StyleSheet,
-  Text,
-  View,
-  TouchableOpacity,
-  NativeSyntheticEvent,
-  NativeTouchEvent,
-  Dimensions,
-  SafeAreaView,
-  ScrollView,
-  Platform,
   FlatList,
-  StatusBar,
 } from 'react-native';
 
-import Feather from 'react-native-vector-icons/Feather';
-
-import Slide, { Props as SlideProps } from './Slide';
-import Colors from '../constants/Colors';
+import Slide, { Props as SlideProps } from '@local/components/Slide';
+import Colors from '@local/constants/Colors';
 
 export interface Props {
   // TODO: add slides as input here

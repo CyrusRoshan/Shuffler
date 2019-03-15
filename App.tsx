@@ -1,7 +1,8 @@
 import { createStackNavigator, createAppContainer } from 'react-navigation';
 
-import HomeScreen from './components/HomeScreen'
-import AllSavedScreen from './components/AllSavedScreen'
+import HomeScreen from '@local/components/HomeScreen'
+import AllSavedScreen from '@local/components/AllSavedScreen'
+import TestScreen from '@local/components/TestScreen'
 
 const NavigationStack = createStackNavigator(
   {
@@ -28,6 +29,14 @@ const NavigationStack = createStackNavigator(
 
     Settings: {
       screen: HomeScreen, // todo: change
+      navigationOptions: {
+        header: null,
+      },
+    },
+
+    // TODO: REMOVE THIS SCREEN
+    Test: {
+      screen: TestScreen,
       navigationOptions: {
         header: null,
       },
