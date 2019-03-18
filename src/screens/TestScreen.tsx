@@ -7,6 +7,8 @@ import { NavigationScreenProp } from 'react-navigation';
 
 import Colors from '../constants/Colors';
 
+import api from '../lib/api';
+
 export interface Props {
   navigation: NavigationScreenProp<any>
 };
@@ -17,6 +19,14 @@ interface State {
 }
 
 export default class TestScreen extends Component<Props, State> {
+  constructor(props: Props) {
+    super(props)
+
+    console.log('TEST SCREEN CONSTRUCTED')
+
+    api.user('godblessthischild').comments({}).then(console.log)
+  }
+
   render() {
     return (
       <View style={styles.container}>
