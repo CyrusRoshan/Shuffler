@@ -3,8 +3,7 @@ import { createStackNavigator, createAppContainer } from 'react-navigation';
 
 import HomeScreen from './screens/HomeScreen'
 import AllSavedScreen from './screens/AllSavedScreen'
-import RedirectScreen from './screens/RedirectScreen'
-import TestScreen from './screens/TestScreen'
+import SettingsScreen from './screens/SettingsScreen'
 
 const NavigationStack = createStackNavigator(
   {
@@ -30,31 +29,15 @@ const NavigationStack = createStackNavigator(
     },
 
     Settings: {
-      screen: HomeScreen, // todo: change
+      screen: SettingsScreen,
       navigationOptions: {
         header: null,
       },
-    },
-
-    // TODO: REMOVE THIS SCREEN
-    Test: {
-      screen: TestScreen,
-      navigationOptions: {
-        header: null,
-      },
-    },
-
-    Redirect: {
-      screen: RedirectScreen,
-      navigationOptions: {
-        header: null,
-      },
-      path: 'redirect',
     },
   },
 
   {
-    initialRouteName: 'Test', // todo: change back to home
+    initialRouteName: 'Home',
   }
 );
 

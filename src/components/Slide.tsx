@@ -50,9 +50,7 @@ export default class Slide extends React.Component<Props, State> {
       },
       heightFitter: {},
     }
-  }
 
-  componentWillMount() {
     Image.getSize(this.props.uri, (width, height) => {
       const newImageHeight = (this.state.slideWidth - IMAGEPADDING * 2) * (height / width);
 
@@ -62,9 +60,7 @@ export default class Slide extends React.Component<Props, State> {
           height: newImageHeight,
         },
       })
-    }, (error) => {
-
-    });
+    }, (err) => {console.log(err)});
   }
 
   render() {

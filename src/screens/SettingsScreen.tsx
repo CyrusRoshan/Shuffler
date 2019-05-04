@@ -1,6 +1,6 @@
 import React from 'react';
 import { Component } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, Linking } from 'react-native';
 
 import { ifIphoneX } from 'react-native-iphone-x-helper';
 import { NavigationScreenProp } from 'react-navigation';
@@ -18,23 +18,22 @@ interface State {
   imgList: Array<string>
 }
 
-export default class TestScreen extends Component<Props, State> {
+export default class SettingsScreen extends Component<Props, State> {
   constructor(props: Props) {
     super(props)
-
-    console.log('TEST SCREEN CONSTRUCTED')
-
-    api.user('godblessthischild').comments({}).then(console.log)
   }
 
   render() {
+    const params = this.props.navigation.state.params;
+    const paramsString = JSON.stringify(params);
     return (
       <View style={styles.container}>
-        <Text style={styles.title}>test screen pls do not upvote</Text>
+        <Text style={styles.title}>Settings</Text>
 
         <View style={styles.postHolder}>
-          <Text>Testing:</Text>
-          {/* <RedditFetcher></RedditFetcher> */}
+          <Text onPress={() => Linking.openURL("shuffler://settings")}>Log in!</Text>
+          <Text>Params:!</Text>
+          <Text>{paramsString}</Text>
         </View>
       </View>
     );
