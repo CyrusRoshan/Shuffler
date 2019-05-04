@@ -14,27 +14,65 @@ export interface Props {
 };
 
 interface State {
-  loadQueue: Array<number>
-  imgList: Array<string>
+  loggedIn: boolean,
+  name: string,
 }
 
 export default class SettingsScreen extends Component<Props, State> {
   constructor(props: Props) {
     super(props)
+
+    this.state = {
+      loggedIn: false,
+      name: '',
+    }
+
+    // Update render if authed locally
+    api.isAuthed().then(authed => {
+      if (authed) {
+        this.renderLogin();
+      }
+    })
+  }
+
+  renderLogin() {
+    api.currentUser().then((u: any) => {
+      this.setState({
+        loggedIn: true,
+        name: u.name,
+      });
+    })
   }
 
   render() {
+    // Save params if we've been given them
     const params = this.props.navigation.state.params;
-    const paramsString = JSON.stringify(params);
+    if (params && params.access_token) {
+      api.saveLogin(params.access_token);
+      this.renderLogin();
+    }
+
+    // Display authed/unauthed page
+    var body;
+    if (this.state.loggedIn) {
+      body = (
+        <View style={styles.postHolder}>
+          <Text>Logged in, {this.state.name}!</Text>
+        </View>
+      )
+    } else {
+      body = (
+        <View style={styles.postHolder}>
+          <Text onPress={() => Linking.openURL(api.loginURL().url)}>Log in!</Text>
+        </View>
+      )
+    }
+
     return (
       <View style={styles.container}>
         <Text style={styles.title}>Settings</Text>
-
-        <View style={styles.postHolder}>
-          <Text onPress={() => Linking.openURL("shuffler://settings")}>Log in!</Text>
-          <Text>Params:!</Text>
-          <Text>{paramsString}</Text>
-        </View>
+        <Text>{JSON.stringify(params)}</Text>
+        {body}
       </View>
     );
   }
