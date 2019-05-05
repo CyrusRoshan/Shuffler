@@ -1,72 +1,12 @@
 import Reddit from '../secrets/Reddit'; // NOTE: this is gitignored for obvious reasons
-import AsyncStorage from '@react-native-community/async-storage';
+import {saveTokens, deleteTokens, tokensExist, getTokens} from './tokens';
+import {USER_AGENT, authedRequest, unauthedRequest} from './requests';
+import {convertToQueryParamString} from './utils';
 
-const USER_AGENT = 'react-native:shuffler:v0.0.1 (by /u/cyrusroshan)';
 const BASE_URL = 'https://oauth.reddit.com';
-const REFRESH_TOKEN_URL = 'https://www.reddit.com/api/v1/access_token';
+const ACCESS_TOKEN_URL = 'https://www.reddit.com/api/v1/access_token';
 const CLIENT_ID = 'NYDEcwiXOz1XPw';
 const REDIRECT_URI = 'shuffler://settings';
-
-const TOKEN_KEY = 'SERIALIZED-TOKENS';
-
-var Tokens = {
-  AuthToken: '',
-}
-
-const getAuthToken = async () => {
-  if (Tokens.AuthToken) {
-    return Tokens.AuthToken;
-  }
-  var t = await AsyncStorage.getItem(TOKEN_KEY);
-  if (t === null) {
-    throw('tokens do not exist')
-  }
-
-  Tokens = JSON.parse(t);
-  return Tokens.AuthToken;
-}
-
-const unauthedRequest = {
-  get: (url: string) => fetch(url, {
-    method: 'GET',
-    headers: {
-      Accept: 'application/json',
-      'User-Agent': USER_AGENT,
-    },
-  }),
-
-  post: (url: string, body: { [key: string]: string }) => fetch(url, {
-    method: 'POST',
-    headers: {
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-      'User-Agent': USER_AGENT,
-    },
-    body: JSON.stringify(body),
-  }),
-}
-
-const authedRequest = {
-  get: (url: string, auth: string) => fetch(url, {
-    method: 'GET',
-    headers: {
-      Accept: 'application/json',
-      'User-Agent': USER_AGENT,
-      Authorization: `bearer ${auth}`,
-    },
-  }).then(r => r.json()),
-
-  post: (url: string, auth: string, body: { [key: string]: string }) => fetch(url, {
-    method: 'POST',
-    headers: {
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-      'User-Agent': USER_AGENT,
-      Authorization: `bearer ${auth}`,
-    },
-    body: JSON.stringify(body),
-  }).then(r => r.json),
-}
 
 const api = {
   loginURL: function() {
@@ -75,41 +15,47 @@ const api = {
       state: state,
       url: `https://www.reddit.com/api/v1/authorize?client_id=${
         encodeURIComponent(CLIENT_ID)
-      }&response_type=token&state=${
+      }&response_type=code&state=${
         encodeURIComponent(state)
       }&redirect_uri=${
         encodeURIComponent(REDIRECT_URI)
-      }&duration=temporary&scope=history%20identity`,
+      }&duration=permanent&scope=history%20identity`,
     }
   },
 
-  saveLogin: async function(authToken: string) {
-    Tokens = {
-      AuthToken: authToken,
-    };
-    return await AsyncStorage.setItem(TOKEN_KEY, JSON.stringify(Tokens))
+  isAuthed: tokensExist,
+  login: async function(code: string) {
+    const body = `grant_type=authorization_code&code=${code}&redirect_uri=shuffler%3A%2F%2Fsettings`
+    const res = await fetch(ACCESS_TOKEN_URL, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'User-Agent': USER_AGENT,
+        'Authorization': `Basic ${btoa(CLIENT_ID + ':')}`,
+      },
+      body: body,
+    }).then(r => r.json())
+
+    if (res.access_token && res.refresh_token) {
+      await saveTokens(res.access_token, res.refresh_token);
+      return res;
+    }
+
+    throw(`error when authenticating: ${JSON.stringify(res)}`)
   },
 
-  isAuthed: async function() {
-    if (Tokens.AuthToken) {
-      return true;
-    }
-    var code = await AsyncStorage.getItem(TOKEN_KEY);
-    if (code === null) {
-      return false;
-    }
-    return true;
-  },
-
-  refresh: async function(refreshToken: string) {
-    return await authedRequest.post(REFRESH_TOKEN_URL, await getAuthToken(), {
+  refresh: async function() {
+    const tokens = await getTokens();
+    return await authedRequest.post(ACCESS_TOKEN_URL, tokens.AuthToken, {
       'grant_type': 'refresh_token',
-      'refresh_token': refreshToken,
+      'refresh_token': tokens.RefreshToken,
     })
   },
 
   currentUser: async function() {
-    return await authedRequest.get(BASE_URL + '/api/v1/me', await getAuthToken());
+    const tokens = await getTokens();
+    return await authedRequest.get(BASE_URL + '/api/v1/me', tokens.AuthToken);
   },
 
   user: function(username: string) {
@@ -134,7 +80,8 @@ const api = {
       const urlWithQuery = url + convertToQueryParamString(props);
       console.log(urlWithQuery)
 
-      return authedRequest.get(urlWithQuery, await getAuthToken());
+      const tokens = await getTokens();
+      return authedRequest.get(urlWithQuery, tokens.AuthToken);
     }
     return {
       comments: (props: userProps) => userFetch('comments', props),
@@ -150,18 +97,3 @@ const api = {
   }
 };
 export default api;
-
-function convertToQueryParamString(queries: {[key: string]: any}): string {
-  let queryParamString = '?';
-  for (const query in queries) {
-    if (queries[query] === undefined) {
-      continue;
-    }
-
-    queryParamString += encodeURIComponent(query);
-    queryParamString += '=';
-    queryParamString += encodeURIComponent(String(queries[query]));
-    queryParamString += '&';
-  }
-  return queryParamString.substring(0, queryParamString.length - 1); // remove last '&' or initial '?'
-}

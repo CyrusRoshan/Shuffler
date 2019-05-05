@@ -47,7 +47,8 @@ const previousAction = NavigationStack.router.getActionForPathAndParams
 NavigationStack.router.getActionForPathAndParams = function (path, params: any) {
   console.log(path, params);
   if (
-    path.indexOf('settings') === 0
+    path.indexOf('settings') === 0 &&
+    path.indexOf('#') != -1
   ) {
     params = {};
 

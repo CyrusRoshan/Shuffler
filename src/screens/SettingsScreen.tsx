@@ -35,21 +35,20 @@ export default class SettingsScreen extends Component<Props, State> {
     })
   }
 
-  renderLogin() {
-    api.currentUser().then((u: any) => {
-      this.setState({
-        loggedIn: true,
-        name: u.name,
-      });
-    })
+  async renderLogin() {
+    const user  = await api.currentUser();
+    this.setState({
+      loggedIn: true,
+      name: user.name,
+    });
+    return true;
   }
 
   render() {
     // Save params if we've been given them
     const params = this.props.navigation.state.params;
-    if (params && params.access_token) {
-      api.saveLogin(params.access_token);
-      this.renderLogin();
+    if (params && params.code) {
+      api.login(params.code).then(this.renderLogin)
     }
 
     // Display authed/unauthed page
