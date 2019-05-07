@@ -1,6 +1,38 @@
+import { throwErrOrParseJSON, keyPair, convertBody } from "./utils";
+
 export const USER_AGENT = 'react-native:shuffler:v0.0.1 (by /u/cyrusroshan)';
 
-interface keyPair { [key: string]: string };
+export const tokenRequest = {
+  initialAuth: async (url: string, clientID: string, code: string) => {
+    const body = `grant_type=authorization_code&code=${code}&redirect_uri=shuffler%3A%2F%2Fsettings`
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'User-Agent': USER_AGENT,
+        'Authorization': `Basic ${btoa(clientID + ':')}`,
+      },
+      body: body,
+    }).then(throwErrOrParseJSON)
+    return res;
+  },
+
+  refresh: async (url: string, clientID: string, refreshToken: string) => {
+    const body = `grant_type=refresh_token&refresh_token=${refreshToken}`
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'User-Agent': USER_AGENT,
+        'Authorization': `Basic ${btoa(clientID + ':')}`,
+      },
+      body: body,
+    }).then(throwErrOrParseJSON)
+    return res;
+  }
+}
 
 export const unauthedRequest = {
   get: (url: string) => fetch(url, {
@@ -9,28 +41,18 @@ export const unauthedRequest = {
       Accept: 'application/json',
       'User-Agent': USER_AGENT,
     },
-  }).then(r => r.json()),
+  }).then(throwErrOrParseJSON),
 
-  post: (url: string, body: keyPair, additionalHeaders?: keyPair) => {
-    var headers = {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json',
-      'User-Agent': USER_AGENT,
-    } as keyPair;
-
-    if (additionalHeaders) {
-      for (var key in additionalHeaders) {
-        headers[key] = additionalHeaders[key];
-      };
-    }
-
-    console.log(headers)
-
+  post: (url: string, body: keyPair) => {
     return fetch(url, {
       method: 'POST',
-      headers: headers,
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'User-Agent': USER_AGENT,
+      },
       body: convertBody(body),
-    }).then(r => r.json())
+    }).then(throwErrOrParseJSON)
   },
 }
 
@@ -42,7 +64,7 @@ export const authedRequest = {
       'User-Agent': USER_AGENT,
       Authorization: `bearer ${auth}`,
     },
-  }).then(r => r.json()),
+  }).then(throwErrOrParseJSON),
 
   post: (url: string, auth: string, body: keyPair) => fetch(url, {
     method: 'POST',
@@ -53,18 +75,5 @@ export const authedRequest = {
       Authorization: `bearer ${auth}`,
     },
     body: convertBody(body),
-  }).then(r => r.json),
-}
-
-function convertBody(body: keyPair) {
-  var newBody = {} as keyPair;
-
-  for (var key in body) {
-    const newKey = encodeURIComponent(key);
-    const newVal = encodeURIComponent(body[key]);
-
-    newBody[newKey] = newVal;
-  }
-
-  return JSON.stringify(newBody)
+  }).then(throwErrOrParseJSON),
 }

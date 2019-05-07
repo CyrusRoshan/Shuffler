@@ -7,6 +7,7 @@ import { NavigationScreenProp } from 'react-navigation';
 
 import CustomCarousel from '../components/CustomCarousel';
 import Colors from '../constants/Colors';
+import api from '../lib/api';
 
 export interface Props {
 	navigation: NavigationScreenProp<any>
@@ -18,6 +19,10 @@ interface State {
 }
 
 export default class AllSaved extends Component<Props, State> {
+  constructor(props: Props) {
+    super(props);
+  }
+
 	render() {
 		return (
 			<View style={styles.container}>
