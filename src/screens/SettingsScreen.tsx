@@ -9,7 +9,12 @@ import Colors from '../constants/Colors';
 import {Post, parsePost} from '../components/Post';
 import {api, QueryParams} from '../lib/api';
 import { storage } from '../lib/storage';
-import { sleep } from '../lib/utils';
+import { sleep, updater } from '../lib/utils';
+
+// TODO: add loading bar
+// TODO: add option for downloading image data
+// TODO: save image data to AsyncStorage using IMAGE_PREFIX prefix + post ID as the key,
+// TODO: when fetching images for the first time
 
 export interface Props {
   navigation: NavigationScreenProp<any>
@@ -19,10 +24,10 @@ interface State {
   loggedIn: boolean,
   name: string,
 
-  populating: boolean,
-  savedItems: ReactNode[],
-  totalDone: number,
   totalItems: number,
+
+  populating: boolean,
+  totalDone: number,
   percentDone: number,
 }
 
@@ -34,13 +39,14 @@ export default class SettingsScreen extends Component<Props, State> {
       loggedIn: false,
       name: '',
 
-      populating: false,
-      savedItems: [],
-      totalDone: 0,
       totalItems: 0,
+
+      populating: false,
+      totalDone: 0,
       percentDone: 0,
     }
 
+    this.getSavedItemCount();
     this.rerenderIfAuthed();
   }
 
@@ -54,6 +60,21 @@ export default class SettingsScreen extends Component<Props, State> {
     if (authed) {
       this.getLogin();
     }
+  }
+
+  // Get count of saved items
+  async getSavedItemCount() {
+    const savedItems = await storage.postIDList().get();
+    if (!savedItems) {
+      this.setState({
+        totalItems: 0,
+      })
+      return;
+    }
+
+    this.setState({
+      totalItems: savedItems.length,
+    })
   }
 
   // Save navigation state params if we've been given them
@@ -88,22 +109,24 @@ export default class SettingsScreen extends Component<Props, State> {
     return true;
   }
 
+  async revalidateAuth() {
+    try {
+      await api.currentUser();
+    } catch (e) {
+      this.setState({
+        loggedIn: false,
+        name: '',
+      });
+    }
+    return true;
+  }
+
   async fetchAndPopulateSavedItems() {
     const props = {
       sort: 'new',
       t: 'all',
       type: 'links',
     } as QueryParams;
-
-    console.log("getting saved items")
-
-    console.log(await api.isAuthed());
-    try {
-      const user = await api.currentUser();
-      console.log(user.json.name)
-    } catch(e) {
-      await api.forceRefresh();
-    }
 
     this.setState({
       percentDone: 0,
@@ -112,123 +135,94 @@ export default class SettingsScreen extends Component<Props, State> {
       totalItems: 0,
     })
 
-
-    const updater = () => {
+    const updateFunc = (currentPercent: number) => {
       this.setState({
-        percentDone: this.state.percentDone + (1/1000) * 30,
-      }, () => {
-        console.log(this.state.percentDone, this.state.totalDone, this.state.totalItems, 'STATE');
-      })
+        percentDone: currentPercent,
+      });
     }
-    await sleep(1000);
 
-    const savedItems = await api.user(this.state.name).allSaved(props)
+    // Updater to handle fetch progress
+    const fetchPhasePct = 70;
+    const fetchPhaseUpdater = updater(0, fetchPhasePct, 100, updateFunc);
+    const savedItems = await api.user(this.state.name).allSaved(props, fetchPhaseUpdater)
 
-    console.log("Total saved items:", savedItems.length)
-    this.setState({
-      percentDone: 30,
-      totalItems: savedItems.length,
-    });
-    await sleep(1000);
-
+    // Filter out non-image posts
     const savedImages = savedItems.filter((item) => {
       return item.data.post_hint === "image";
     })
-
-    console.log("getting post data", savedImages)
-    this.setState({
-      percentDone: 40,
-    });
-    await sleep(1000);
-
     // Get saved image post data. We want to have the post data so we can save this to memory
     const savedImagePostData = savedImages.map((post) => {
       return parsePost(post);
     })
 
-    // TODO: add loading bar
-    // TODO: add option for downloading image data
-    // TODO: save image data to AsyncStorage using IMAGE_PREFIX prefix + post ID as the key,
-    // TODO: when fetching images for the first time
-    // TODO:
-    // TODO:
-
+    // This is the number of images we're actually going to save.
+    const totalItems = savedImagePostData.length;
     this.setState({
-      percentDone: 50,
+      totalItems: totalItems,
     });
-    await sleep(1000);
-    const awaiters = Array(savedItems.length + 1) as Promise<any>[];
 
+    // Updater to handle save progress
+    const savePhasePct = 100;
+    const savePhaseUpdater = updater(fetchPhasePct, savePhasePct, this.state.totalItems, (c: number) => {
+      this.setState({totalDone: this.state.totalDone + 1});
+      updateFunc(c);
+    })
+    const awaiters = Array(totalItems + 1) as Promise<any>[];
+
+
+    // Save list of all post IDs
     const allPostIDs = savedImagePostData.map((postData) => {
       return postData.prefixed_id;
     })
+    awaiters[0] = storage.postIDList().add(allPostIDs).then(savePhaseUpdater);
 
-    awaiters[0] = storage.postIDList().add(allPostIDs);
+    // And save the KV map of post ID to post data
     savedImagePostData.forEach((postData, i) => {
-      awaiters[i + 1] = storage.postData().save(postData.prefixed_id, postData);
+      awaiters[i + 1] = storage.postData().save(postData.prefixed_id, postData).then(savePhaseUpdater);
     })
 
-    var totalDone = 0;
-    const incrementAndSetState = () => {
-      totalDone += 1;
-      this.setState({
-        totalDone: totalDone,
-        percentDone: 50 + 50 * (totalDone/this.state.totalItems),
-      });
+    // Wait for everything to finish. Updating % should happen asynchronously.
+    for (let i = 0; i < awaiters.length; i++) {
+      await awaiters[i];
     }
 
-    awaiters.forEach(async (awaiter) => {
-      await awaiter;
-      incrementAndSetState();
-    });
-
-    console.log("creating post elements", savedImagePostData)
-    const savedImagePosts = savedImagePostData.map((postData) => {
-      return <Post data={postData} />
-    })
-
-    this.setState({
-      totalDone: totalDone,
-      percentDone: 100,
-    });
-    await sleep(1000);
-
-    console.log("rendering posts", savedImagePosts)
+    // Done populating. Image posts can be rendered.
     this.setState({
       populating: false,
-      savedItems: savedImagePosts,
+      totalItems: totalItems,
     });
-    await sleep(1000);
-
     return true;
   }
 
   render() {
     // Display authed/unauthed page
-    var body;
-    if (this.state.loggedIn) {
-      body = (
-        <View style={styles.postHolder}>
-          <Text style={styles.regularText}>Logged in, {this.state.name}!</Text>
-          <Text style={styles.linkText} onPress={async () => this.fetchAndPopulateSavedItems()}>Populate saved items!</Text>
-          <View>
-            {this.state.savedItems.map(function (post, i) {
-              return (
-                <View key={i}>
-                  {post}
-                </View>
-              )
-            })}
-          </View>
-        </View>
-      )
-    } else {
-      body = (
-        <View style={styles.postHolder}>
+
+    var loginButton;
+    if (!this.state.loggedIn) {
+      loginButton = (
+        <>
           <Text style={styles.linkText} onPress={() => Linking.openURL(api.loginURL().url)}>
             Log in!
           </Text>
-        </View>
+        </>
+      )
+    }
+
+    var userInfo;
+    var loggedInOptions;
+    if (this.state.loggedIn) {
+      userInfo = (
+        <>
+          <Text style={styles.regularText}>Logged in, {this.state.name}!</Text>
+          <Text style={styles.linkText} onPress={() => this.revalidateAuth()}>Revalidate auth!</Text>
+          {/* TODO: add logout button */}
+        </>
+      )
+      loggedInOptions = (
+        <>
+          <Text style={styles.linkText} onPress={() => this.fetchAndPopulateSavedItems()}>(Re)populate saved posts!</Text>
+          <Text style={styles.regularText}>Saved post count: {this.state.totalItems}</Text>
+        </>
       )
     }
 
@@ -242,9 +236,12 @@ export default class SettingsScreen extends Component<Props, State> {
 
     return (
       <View style={styles.container}>
-        <Text style={styles.title}>Settings</Text>
-        {populatingText}
-        {body}
+        <View style={styles.postHolder}>
+          {loginButton}
+          {userInfo}
+          {populatingText}
+          {loggedInOptions}
+        </View>
       </View>
     );
   }

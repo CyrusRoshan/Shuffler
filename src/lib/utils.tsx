@@ -40,3 +40,12 @@ export function sleep(ms: number) {
     setTimeout(resolve, ms);
   })
 }
+
+export function updater(min: number, max: number, maxIncrements: number, updateFunc: (c: number) => void) {
+  var increments = 0;
+  return () => {
+    increments += 1;
+    const current = (max - min) * (increments / maxIncrements) + min;
+    updateFunc(current);
+  }
+}

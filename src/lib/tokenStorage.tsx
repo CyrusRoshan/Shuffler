@@ -13,7 +13,7 @@ export const SaveTokens = async (authToken: string, refreshToken: string, refres
   Tokens.RefreshToken = refreshToken;
 
   var d = new Date()
-  d.setSeconds(d.getSeconds() + Number(refreshTime));
+  d.setSeconds(d.getSeconds() + Number(refreshTime) - 5); // Decrement just in case of latency when recieving message
   Tokens.RefreshDate =  d;
 
   return await AsyncStorage.setItem(TOKEN_KEY, JSON.stringify(Tokens))
@@ -49,9 +49,12 @@ export const GetTokens = async function() {
   const tokens = await getTokens();
 
   const now = new Date();
-  if (tokens.RefreshDate > now) {
+  if (now > tokens.RefreshDate) {
+    console.log("AUTOMATICALLY REFRESHING THE TOKENS")
     RefreshTokens();
   }
+  const timeDiff = tokens.RefreshDate.getTime() - now.getTime();
+  console.log(`Time before token in seconds: ${Math.floor(timeDiff / 1000)}. In minutes: ${Math.floor(timeDiff / 1000 / 60)}`);
 
   return tokens;
 }
@@ -66,6 +69,12 @@ const getTokens = async function() {
     throw('tokens do not exist');
   }
 
-  Tokens = JSON.parse(t);
+  const parsedT = JSON.parse(t);
+  Tokens = {
+    AuthToken: parsedT.AuthToken,
+    RefreshToken: parsedT.RefreshToken,
+    RefreshDate: new Date(parsedT.RefreshDate),
+  }
+
   return Tokens;
 }
