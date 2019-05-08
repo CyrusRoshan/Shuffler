@@ -8,7 +8,7 @@ var Tokens = {
   RefreshDate: new Date(),
 };
 
-export const saveTokens = async (authToken: string, refreshToken: string, refreshTime: string) => {
+export const SaveTokens = async (authToken: string, refreshToken: string, refreshTime: string) => {
   Tokens.AuthToken = authToken;
   Tokens.RefreshToken = refreshToken;
 
@@ -19,7 +19,7 @@ export const saveTokens = async (authToken: string, refreshToken: string, refres
   return await AsyncStorage.setItem(TOKEN_KEY, JSON.stringify(Tokens))
 }
 
-export const deleteTokens = async () => {
+export const DeleteTokens = async () => {
   Tokens = {
     AuthToken: '',
     RefreshToken: '',
@@ -28,7 +28,7 @@ export const deleteTokens = async () => {
   return await AsyncStorage.removeItem(TOKEN_KEY)
 }
 
-export const tokensExist = async function() {
+export const TokensExist = async function() {
   try {
     await getTokens();
     return true;
@@ -37,15 +37,20 @@ export const tokensExist = async function() {
   };
 }
 
+export const RefreshTokens = async function() {
+  const tokens = await getTokens();
+  const refreshData = await api.refresh(tokens.RefreshToken);
+
+  await SaveTokens(refreshData.accessToken, tokens.RefreshToken, refreshData.expires_in)
+  return getTokens();
+}
+
 export const GetTokens = async function() {
   const tokens = await getTokens();
 
   const now = new Date();
   if (tokens.RefreshDate > now) {
-    const refreshData = await api.refresh(tokens.RefreshToken);
-
-    await saveTokens(refreshData.accessToken, tokens.RefreshToken, refreshData.expires_in)
-    return getTokens();
+    RefreshTokens();
   }
 
   return tokens;

@@ -27,10 +27,16 @@ export function convertBody(body: keyPair) {
   return JSON.stringify(newBody)
 }
 
-export async function throwErrOrParseJSON(r: Response) {
-  if (!r.ok) {
-    const body = await r.text();
-    throw (`response error: ${r.status}, ${body}`)
+export async function throwErrOrParseJSON(resp: Response) {
+  if (!resp.ok) {
+    const body = await resp.text();
+    throw (`response error: ${resp.status}, ${body}}`)
   }
-  return { response: r, json: await r.json() };
+  return { response: resp, json: await resp.json() };
+}
+
+export function sleep(ms: number) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  })
 }

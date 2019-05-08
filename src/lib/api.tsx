@@ -1,5 +1,4 @@
-import Reddit from '../secrets/Reddit'; // NOTE: this is gitignored for obvious reasons
-import {saveTokens, deleteTokens, tokensExist, GetTokens} from './tokens';
+import {SaveTokens, DeleteTokens, TokensExist, GetTokens, RefreshTokens} from './tokenStorage';
 import {tokenRequest, authedRequest, unauthedRequest} from './requests';
 import {convertToQueryParamString} from './utils';
 
@@ -39,18 +38,19 @@ export const api = {
   },
 
   authDetails: GetTokens,
-  isAuthed: tokensExist,
+  isAuthed: TokensExist,
 
   login: async function(code: string) {
     const res = await tokenRequest.initialAuth(ACCESS_TOKEN_URL, CLIENT_ID, code);
 
     if (res.json.access_token && res.json.refresh_token && res.json.expires_in) {
-      await saveTokens(res.json.access_token, res.json.refresh_token, res.json.expires_in);
+      await SaveTokens(res.json.access_token, res.json.refresh_token, res.json.expires_in);
       return res;
     }
     throw(`error when authenticating: ${JSON.stringify(res)}`)
   },
 
+  forceRefresh: RefreshTokens,
   refresh: async function(refreshToken: string) {
     const res = await tokenRequest.refresh(ACCESS_TOKEN_URL, CLIENT_ID, refreshToken);
     if (res.json.access_token && res.json.expires_in) {
@@ -76,7 +76,7 @@ export const api = {
       return authedRequest.get(urlWithQuery, tokens.AuthToken);
     }
 
-    const userFetchAll = async function(pathSuffix: string, params: QueryParams) {
+    const userFetchAll = async function(pathSuffix: string, params: QueryParams, updateCallback?: Function) {
       var items = [] as any[];
       var after = null;
       do {
@@ -90,6 +90,10 @@ export const api = {
 
         for (let i = 0; i < fetchedItems.length; i++) {
           items.push(fetchedItems[i]);
+        }
+
+        if (updateCallback) {
+          updateCallback();
         }
       } while (after);
 
@@ -107,15 +111,15 @@ export const api = {
       upvoted: (params: QueryParams) => userFetch('upvoted', params),
       where: (params: QueryParams) => userFetch('where', params),
 
-      allComments: (params: QueryParams) => userFetchAll('comments', params),
-      allDownvoted: (params: QueryParams) => userFetchAll('downvoted', params),
-      allGilded: (params: QueryParams) => userFetchAll('gilded', params),
-      allHidden: (params: QueryParams) => userFetchAll('hidden', params),
-      allOverview: (params: QueryParams) => userFetchAll('overview', params),
-      allSaved: (params: QueryParams) => userFetchAll('saved', params),
-      allSubmitted: (params: QueryParams) => userFetchAll('submitted', params),
-      allUpvoted: (params: QueryParams) => userFetchAll('upvoted', params),
-      allWhere: (params: QueryParams) => userFetchAll('where', params),
+      allComments: (params: QueryParams, updateCallback?: Function) => userFetchAll('comments', params, updateCallback),
+      allDownvoted: (params: QueryParams, updateCallback?: Function) => userFetchAll('downvoted', params, updateCallback),
+      allGilded: (params: QueryParams, updateCallback?: Function) => userFetchAll('gilded', params, updateCallback),
+      allHidden: (params: QueryParams, updateCallback?: Function) => userFetchAll('hidden', params, updateCallback),
+      allOverview: (params: QueryParams, updateCallback?: Function) => userFetchAll('overview', params, updateCallback),
+      allSaved: (params: QueryParams, updateCallback?: Function) => userFetchAll('saved', params, updateCallback),
+      allSubmitted: (params: QueryParams, updateCallback?: Function) => userFetchAll('submitted', params, updateCallback),
+      allUpvoted: (params: QueryParams, updateCallback?: Function) => userFetchAll('upvoted', params, updateCallback),
+      allWhere: (params: QueryParams, updateCallback?: Function) => userFetchAll('where', params, updateCallback),
     }
   }
 };
