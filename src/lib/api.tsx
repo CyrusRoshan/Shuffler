@@ -67,6 +67,8 @@ export const api = {
     return await authedRequest.get(BASE_URL + '/api/v1/me', tokens.AuthToken);
   },
 
+  logout: DeleteTokens,
+
   user: function(username: string) {
     const userFetch = async function(pathSuffix: string, params: QueryParams) {
       const url = BASE_URL + `/user/${username}/${pathSuffix}`

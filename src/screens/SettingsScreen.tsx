@@ -10,6 +10,7 @@ import {Post, parsePost} from '../components/Post';
 import {api, QueryParams} from '../lib/api';
 import { storage } from '../lib/storage';
 import { sleep, updater } from '../lib/utils';
+import { BooleanOption, ClickOption } from '../components/Option';
 
 // TODO: add loading bar
 // TODO: add option for downloading image data
@@ -24,10 +25,11 @@ interface State {
   loggedIn: boolean,
   name: string,
 
-  totalItems: number,
+  savedItemCount: number,
 
   populating: boolean,
-  totalDone: number,
+  totalToFetch: number,
+  totalFetched: number,
   percentDone: number,
 }
 
@@ -39,10 +41,11 @@ export default class SettingsScreen extends Component<Props, State> {
       loggedIn: false,
       name: '',
 
-      totalItems: 0,
+      savedItemCount: 0,
 
       populating: false,
-      totalDone: 0,
+      totalFetched: 0,
+      totalToFetch: 0,
       percentDone: 0,
     }
 
@@ -67,13 +70,13 @@ export default class SettingsScreen extends Component<Props, State> {
     const savedItems = await storage.postIDList().get();
     if (!savedItems) {
       this.setState({
-        totalItems: 0,
+        savedItemCount: 0,
       })
       return;
     }
 
     this.setState({
-      totalItems: savedItems.length,
+      savedItemCount: savedItems.length,
     })
   }
 
@@ -91,7 +94,7 @@ export default class SettingsScreen extends Component<Props, State> {
   }
 
   async getLogin() {
-    var username = await storage.username().get()
+    var username = await storage.settings().username().get()
     if (!username) {
       const user  = await api.currentUser();
 
@@ -99,7 +102,7 @@ export default class SettingsScreen extends Component<Props, State> {
       if (!username) {
         throw(`error fetching user: ${user}`);
       }
-      storage.username().save(username);
+      storage.settings().username().save(username);
     }
 
     this.setState({
@@ -107,6 +110,23 @@ export default class SettingsScreen extends Component<Props, State> {
       name: username,
     });
     return true;
+  }
+
+  async logOut() {
+    await api.logout();
+    this.setState({
+      loggedIn: false,
+      name: '',
+    })
+  }
+
+  async clearAllData() {
+    await storage.irreversablyClearAllData()
+    this.setState({
+      loggedIn: false,
+      name: '',
+      savedItemCount: 0,
+    })
   }
 
   async revalidateAuth() {
@@ -131,8 +151,8 @@ export default class SettingsScreen extends Component<Props, State> {
     this.setState({
       percentDone: 0,
       populating: true,
-      totalDone: 0,
-      totalItems: 0,
+      totalFetched: 0,
+      totalToFetch: 0,
     })
 
     const updateFunc = (currentPercent: number) => {
@@ -156,18 +176,18 @@ export default class SettingsScreen extends Component<Props, State> {
     })
 
     // This is the number of images we're actually going to save.
-    const totalItems = savedImagePostData.length;
+    const totalToFetch = savedImagePostData.length;
     this.setState({
-      totalItems: totalItems,
-    });
+      totalToFetch: totalToFetch,
+    })
 
     // Updater to handle save progress
     const savePhasePct = 100;
-    const savePhaseUpdater = updater(fetchPhasePct, savePhasePct, this.state.totalItems, (c: number) => {
-      this.setState({totalDone: this.state.totalDone + 1});
+    const savePhaseUpdater = updater(fetchPhasePct, savePhasePct, totalToFetch, (c: number) => {
+      this.setState({totalFetched: this.state.totalFetched + 1});
       updateFunc(c);
     })
-    const awaiters = Array(totalItems + 1) as Promise<any>[];
+    const awaiters = Array(totalToFetch + 1) as Promise<any>[];
 
 
     // Save list of all post IDs
@@ -186,11 +206,11 @@ export default class SettingsScreen extends Component<Props, State> {
       await awaiters[i];
     }
 
-    // Done populating. Image posts can be rendered.
+    // Done populating.
     this.setState({
       populating: false,
-      totalItems: totalItems,
     });
+    this.getSavedItemCount();
     return true;
   }
 
@@ -213,15 +233,30 @@ export default class SettingsScreen extends Component<Props, State> {
     if (this.state.loggedIn) {
       userInfo = (
         <>
+          <Text style={styles.regularText}>-----------------</Text>
           <Text style={styles.regularText}>Logged in, {this.state.name}!</Text>
-          <Text style={styles.linkText} onPress={() => this.revalidateAuth()}>Revalidate auth!</Text>
+          <Text style={styles.regularText}>Saved post count: {this.state.savedItemCount}</Text>
+          <Text style={styles.regularText}>-----------------</Text>
           {/* TODO: add logout button */}
         </>
       )
       loggedInOptions = (
         <>
-          <Text style={styles.linkText} onPress={() => this.fetchAndPopulateSavedItems()}>(Re)populate saved posts!</Text>
-          <Text style={styles.regularText}>Saved post count: {this.state.totalItems}</Text>
+          <View style={{marginTop: 20}}></View>
+          <Text style={styles.subtitle}>Options</Text>
+          <BooleanOption optionText="Lazy save posts for offline viewing?"
+            getter={storage.settings().savePosts().get}
+            setter={storage.settings().savePosts().save}/>
+          <ClickOption optionText="Fetch saved posts from Reddit?"
+            action={() => this.fetchAndPopulateSavedItems()}/>
+
+          <Text style={styles.subtitle}>Auth</Text>
+          <ClickOption optionText="Revalidate auth tokens?"
+            action={() => this.revalidateAuth()} />
+          <ClickOption optionText="Log out?"
+            action={() => this.logOut()}/>
+          <ClickOption optionText="Clear ALL data?"
+            action={() => this.clearAllData()}/>
         </>
       )
     }
@@ -229,7 +264,7 @@ export default class SettingsScreen extends Component<Props, State> {
     var populatingText;
     if (this.state.populating) {
       populatingText = <>
-        <Text style={styles.regularText}>Saving {this.state.totalDone} out of {this.state.totalItems}</Text>
+        <Text style={styles.regularText}>Saving {this.state.totalFetched} out of {this.state.totalToFetch}</Text>
         <Text style={styles.regularText}>{Math.round(this.state.percentDone)}% done</Text>
       </>
     }
@@ -237,6 +272,7 @@ export default class SettingsScreen extends Component<Props, State> {
     return (
       <View style={styles.container}>
         <View style={styles.postHolder}>
+          <Text style={styles.title}>Settings</Text>
           {loginButton}
           {userInfo}
           {populatingText}
@@ -264,6 +300,19 @@ const styles = StyleSheet.create({
     lineHeight: 50,
     fontWeight: '900',
 
+    marginBottom: 20,
+
+    textAlign: 'center',
+    alignSelf: 'stretch',
+    color: Colors.lightWhite,
+  },
+
+  subtitle: {
+    fontSize: 30,
+    lineHeight: 40,
+    fontWeight: '900',
+
+    marginTop: 10,
     marginBottom: 0,
 
     textAlign: 'center',

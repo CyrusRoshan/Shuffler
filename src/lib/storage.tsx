@@ -20,20 +20,14 @@ export interface Settings {
 }
 
 export const storage = {
-  username: () => {
-    const PREFIX = 'USERNAME';
+  irreversablyClearAllData: AsyncStorage.clear,
+
+  settings: () => {
+    const SETTINGS_PREFIX = 'SETTINGS';
 
     return {
-      save: async function(name: string) {
-        if (!name) {
-          throw(ERR_NULL_VALUE)
-        }
-        return await AsyncStorage.setItem(PREFIX, name);
-      },
-
-      get: async function() {
-        return await AsyncStorage.getItem(PREFIX);
-      }
+      username: () => stringGetterSaver(prefix(SETTINGS_PREFIX, "USERNAME")),
+      savePosts: () => boolGetterSaver(prefix(SETTINGS_PREFIX, "SAVEPOSTS")),
     }
   },
 
@@ -123,4 +117,38 @@ export const storage = {
       },
     }
   },
+}
+
+const stringGetterSaver = (key: string) => {
+  return {
+    save: async function (value: string) {
+      if (!value) {
+        throw (ERR_NULL_VALUE)
+      }
+      return await AsyncStorage.setItem(key, value);
+    },
+
+    get: async function () {
+      return await AsyncStorage.getItem(key);
+    }
+  }
+}
+
+const boolGetterSaver = (key: string) => {
+  return {
+    save: async function (value: boolean) {
+      if (value === undefined || value === null) {
+        throw (ERR_NULL_VALUE)
+      }
+      return await AsyncStorage.setItem(key, JSON.stringify(value));
+    },
+
+    get: async function () {
+      const value = await AsyncStorage.getItem(key);
+      if (!value) {
+        return false;
+      }
+      return Boolean(JSON.parse(value));
+    }
+  }
 }
