@@ -4,11 +4,6 @@ import { StyleSheet, Text, View, Linking } from 'react-native';
 
 import Colors from '../constants/Colors';
 
-// TODO: add loading bar
-// TODO: add option for downloading image data
-// TODO: save image data to AsyncStorage using IMAGE_PREFIX prefix + post ID as the key,
-// TODO: when fetching images for the first time
-
 export interface BoolProps {
   optionText: string
 

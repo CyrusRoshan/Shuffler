@@ -12,11 +12,6 @@ import { storage } from '../lib/storage';
 import { sleep, updater } from '../lib/utils';
 import { BooleanOption, ClickOption } from '../components/Option';
 
-// TODO: add loading bar
-// TODO: add option for downloading image data
-// TODO: save image data to AsyncStorage using IMAGE_PREFIX prefix + post ID as the key,
-// TODO: when fetching images for the first time
-
 export interface Props {
   navigation: NavigationScreenProp<any>
 };
@@ -237,7 +232,6 @@ export default class SettingsScreen extends Component<Props, State> {
           <Text style={styles.regularText}>Logged in, {this.state.name}!</Text>
           <Text style={styles.regularText}>Saved post count: {this.state.savedItemCount}</Text>
           <Text style={styles.regularText}>-----------------</Text>
-          {/* TODO: add logout button */}
         </>
       )
       loggedInOptions = (
@@ -245,8 +239,11 @@ export default class SettingsScreen extends Component<Props, State> {
           <View style={{marginTop: 20}}></View>
           <Text style={styles.subtitle}>Options</Text>
           <BooleanOption optionText="Lazy save posts for offline viewing?"
-            getter={storage.settings().savePosts().get}
-            setter={storage.settings().savePosts().save}/>
+            getter={storage.settings().savePostImages().get}
+            setter={storage.settings().savePostImages().save}/>
+          <BooleanOption optionText="Should clicking posts navigate to reddit.com?"
+            getter={storage.settings().clickableLinks().get}
+            setter={storage.settings().clickableLinks().save}/>
           <ClickOption optionText="Fetch saved posts from Reddit?"
             action={() => this.fetchAndPopulateSavedItems()}/>
 

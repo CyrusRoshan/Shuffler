@@ -5,7 +5,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { ifIphoneX } from 'react-native-iphone-x-helper';
 import { NavigationScreenProp } from 'react-navigation';
 
-import CustomCarousel from '../components/CustomCarousel';
+import PostScroller from '../components/PostScroller';
 import Colors from '../constants/Colors';
 import { PostData } from '../components/Post';
 import { storage } from '../lib/storage';
@@ -17,14 +17,18 @@ export interface Props {
 
 interface State {
   postData: PostData[]
+  clickableLinks: boolean,
+  savePostImages: boolean,
 }
 
-export default class AllSaved extends Component<Props, State> {
+export default class PostsScreen extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
 
     this.state = {
-      postData: []
+      postData: [],
+      clickableLinks: false,
+      savePostImages: false,
     }
     this.getPostsData();
   }
@@ -50,9 +54,15 @@ export default class AllSaved extends Component<Props, State> {
       postData[i] = data;
     }
 
+    // Get settings and pass on
+    const savePostImages = await storage.settings().savePostImages().get();
+    const clickableLinks = await storage.settings().clickableLinks().get();
+
     // Save shuffled post data to state
     this.setState({
-      postData: postData,
+      postData,
+      savePostImages,
+      clickableLinks,
     })
   }
 
@@ -62,7 +72,10 @@ export default class AllSaved extends Component<Props, State> {
         <Text style={styles.title}>all saved posts</Text>
 
         <View style={styles.postHolder}>
-          <CustomCarousel postData={this.state.postData}></CustomCarousel>
+          <PostScroller
+          postData={this.state.postData}
+          clickableLinks={this.state.clickableLinks}
+          savePostImages={this.state.savePostImages}></PostScroller>
         </View>
 			</View>
 		);
@@ -86,7 +99,7 @@ const styles = StyleSheet.create({
 		lineHeight: 50,
 		fontWeight: '900',
 
-		marginBottom: 0,
+		marginBottom: 10,
 
 		textAlign: 'center',
 		alignSelf: 'stretch',
@@ -96,7 +109,5 @@ const styles = StyleSheet.create({
 	postHolder: {
     flex: 1,
     width: '100%',
-
-		paddingTop: 10,
   },
 });

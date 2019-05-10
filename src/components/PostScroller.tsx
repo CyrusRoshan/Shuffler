@@ -5,20 +5,20 @@ import {
   FlatList,
 } from 'react-native';
 
-import Slide, { Props as SlideProps } from '../components/Slide';
 import Colors from '../constants/Colors';
 import { Post, PostData } from './Post';
-import { storage } from '../lib/storage';
 
 export interface Props {
   postData: PostData[]
+  savePostImages: boolean
+  clickableLinks: boolean
 }
 
 export interface State {
   currentIndex: number
 }
 
-export default class CustomCarousel extends Component<Props, State> {
+export default class PostScroller extends Component<Props, State> {
   constructor(props: Props) {
     super(props)
 
@@ -32,21 +32,14 @@ export default class CustomCarousel extends Component<Props, State> {
       <FlatList
         style={styles.root}
         horizontal={false}
-        // decelerationRate={0.998}
         showsHorizontalScrollIndicator={false}
         showsVerticalScrollIndicator={true}
         data={this.props.postData}
         windowSize={5}
-        maxToRenderPerBatch={1}
+        maxToRenderPerBatch={5}
         initialNumToRender={2}
-        renderItem={(e) => {
-            return <Post data={e.item}/>
-          }
-        }
-        keyExtractor={(item, index) => {
-            return item.prefixed_id;
-          }
-        }
+        renderItem={(info) => <Post data={info.item} clickableLinks={this.props.clickableLinks} savePostImages={this.props.savePostImages}/>}
+        keyExtractor={(item, index) => item.prefixed_id }
       />
     );
   };

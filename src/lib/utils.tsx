@@ -59,3 +59,19 @@ export function shuffle(arr: any[]) {
     arr[j] = temp
   }
 }
+
+export function getReadableDateSince(dateInMS: number) {
+  const times =    ["ms", "s", "min", "hrs", "d", "mo", "y"];
+  const divisors = [1000, 60, 60, 24, 30, 12];
+
+  var curr = dateInMS;
+  var i = 0
+  for (; i < divisors.length; i++) {
+    const rounded = Math.round(curr / divisors[i]);
+    if (rounded < 1) {
+      break;
+    }
+    curr = rounded;
+  }
+  return `${curr}${times[i]}`
+}

@@ -2,9 +2,8 @@ import React from 'react';
 import { createStackNavigator, createAppContainer, NavigationActions } from 'react-navigation';
 
 import HomeScreen from './screens/HomeScreen'
-import AllSavedScreen from './screens/AllSavedScreen'
+import PostsScreen from './screens/PostsScreen'
 import SettingsScreen from './screens/SettingsScreen'
-import api from './lib/api';
 
 const NavigationStack = createStackNavigator(
   {
@@ -16,14 +15,14 @@ const NavigationStack = createStackNavigator(
     },
 
     AllSaved: {
-      screen: AllSavedScreen,
+      screen: PostsScreen,
       navigationOptions: {
         header: null,
       },
     },
 
-    Favorites: {
-      screen: HomeScreen, // todo: change
+    Offline: {
+      screen: PostsScreen, // TODO: make this instance only pull prev-saved images
       navigationOptions: {
         header: null,
       },

@@ -7,18 +7,6 @@ function prefix(pre: string, str: string) {
   return pre + '-' + str;
 }
 
-// TODO: use this instead of storage.username
-export interface Settings {
-  // Username
-  username: string,
-
-  // Whether or not to save base64 image data
-  // TODO: saveImages: string,
-
-  // TODO: DarkMode
-  // TODO:
-}
-
 export const storage = {
   irreversablyClearAllData: AsyncStorage.clear,
 
@@ -27,7 +15,8 @@ export const storage = {
 
     return {
       username: () => stringGetterSaver(prefix(SETTINGS_PREFIX, "USERNAME")),
-      savePosts: () => boolGetterSaver(prefix(SETTINGS_PREFIX, "SAVEPOSTS")),
+      savePostImages: () => boolGetterSaver(prefix(SETTINGS_PREFIX, "SAVE_POST_IMAGES")),
+      clickableLinks: () => boolGetterSaver(prefix(SETTINGS_PREFIX, "CLICKABLE_LINKS")),
     }
   },
 
