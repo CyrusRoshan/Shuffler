@@ -40,7 +40,6 @@ export class BooleanOption extends Component<BoolProps, BoolState> {
         })
       })
     }
-    console.log(this.state)
   }
 
   switchState(enabled: boolean) {

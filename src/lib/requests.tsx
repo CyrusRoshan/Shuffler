@@ -1,4 +1,5 @@
 import { throwErrOrParseJSON, keyPair, convertBody } from "./utils";
+const base64 = require('base-64');
 
 export const USER_AGENT = 'react-native:shuffler:v0.0.1 (by /u/cyrusroshan)';
 
@@ -11,7 +12,7 @@ export const tokenRequest = {
         'Accept': 'application/json',
         'Content-Type': 'application/x-www-form-urlencoded',
         'User-Agent': USER_AGENT,
-        'Authorization': `Basic ${btoa(clientID + ':')}`,
+        'Authorization': `Basic ${base64.encode(clientID + ':')}`,
       },
       body: body,
     }).then(throwErrOrParseJSON)
@@ -26,7 +27,7 @@ export const tokenRequest = {
         'Accept': 'application/json',
         'Content-Type': 'application/x-www-form-urlencoded',
         'User-Agent': USER_AGENT,
-        'Authorization': `Basic ${btoa(clientID + ':')}`,
+        'Authorization': `Basic ${base64.encode(clientID + ':')}`,
       },
       body: body,
     }).then(throwErrOrParseJSON)

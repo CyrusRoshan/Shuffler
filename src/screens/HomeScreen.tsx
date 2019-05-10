@@ -17,7 +17,7 @@ export interface Props {
 export default class HomeScreen extends Component<Props> {
   render() {
     const shuffleIcon = <Feather name='layers' size={35} color={Colors.darkBlack} />
-    const favoritesIcon = <Feather name='wifi-off' size={35} color={Colors.darkBlack} />
+    const offlineIcon = <Feather name='wifi-off' size={35} color={Colors.darkBlack} />
     const settingsIcon = <Feather name='settings' size={35} color={Colors.darkBlack} />
 
     return (
@@ -38,14 +38,14 @@ export default class HomeScreen extends Component<Props> {
           ></NavButton>
 
           <NavButton
-            title='offline favorites'
-            icon={favoritesIcon}
+            title='offline mode'
+            icon={offlineIcon}
             styleOptions={{
               iconBackgroundColor: Colors.lightYellow,
               backgroundColor: 'transparent',
               titleColor: Colors.lightYellow,
             }}
-            onPress={() => this.props.navigation.push('Favorites')}
+            onPress={() => this.props.navigation.push('Offline')}
           ></NavButton>
 
           <NavButton

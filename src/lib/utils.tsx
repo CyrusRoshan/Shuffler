@@ -49,3 +49,13 @@ export function updater(min: number, max: number, maxIncrements: number, updateF
     updateFunc(current);
   }
 }
+
+// Fisher-Yates shuffle
+export function shuffle(arr: any[]) {
+  for (var i = arr.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const temp = arr[i]
+    arr[i] = arr[j]
+    arr[j] = temp
+  }
+}

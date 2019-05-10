@@ -79,7 +79,7 @@ export const storage = {
           return null;
         }
 
-        return JSON.parse(postDataText) as PostData[];
+        return JSON.parse(postDataText) as PostData;
       },
 
       save: async function(postID: string, postData: PostData) {

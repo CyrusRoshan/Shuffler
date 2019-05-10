@@ -7,9 +7,11 @@ import {
 
 import Slide, { Props as SlideProps } from '../components/Slide';
 import Colors from '../constants/Colors';
+import { Post, PostData } from './Post';
+import { storage } from '../lib/storage';
 
 export interface Props {
-  // TODO: add slides as input here
+  postData: PostData[]
 }
 
 export interface State {
@@ -17,6 +19,14 @@ export interface State {
 }
 
 export default class CustomCarousel extends Component<Props, State> {
+  constructor(props: Props) {
+    super(props)
+
+    this.state = {
+      currentIndex: 0,
+    }
+  }
+
   render() {
     return (
       <FlatList
@@ -25,21 +35,18 @@ export default class CustomCarousel extends Component<Props, State> {
         // decelerationRate={0.998}
         showsHorizontalScrollIndicator={false}
         showsVerticalScrollIndicator={true}
-
-        data={ENTRIES}
+        data={this.props.postData}
+        windowSize={5}
+        maxToRenderPerBatch={1}
+        initialNumToRender={2}
         renderItem={(e) => {
-          return (
-            <Slide
-              offline={false} // TODO: add save system
-              title={e.item.title}
-              uri={e.item.uri}
-              username={e.item.username}
-              subreddit={e.item.subreddit}
-              postAge={e.item.postAge}
-            />
-          )
-        }}
-        keyExtractor={(item, index) => index.toString()}
+            return <Post data={e.item}/>
+          }
+        }
+        keyExtractor={(item, index) => {
+            return item.prefixed_id;
+          }
+        }
       />
     );
   };
@@ -51,55 +58,3 @@ const styles = StyleSheet.create({
     width: '100%',
   }
 });
-
-const ENTRIES = [
-  {
-    title: 'Here is an example title that seems to take up a bit of space',
-    uri: 'https://i.redd.it/npco02i3kre21.jpg',
-    username: 'example',
-    subreddit: 'example',
-    postAge: '1mo',
-  },
-  {
-    title: 'example title 2',
-    uri: 'https://i.redd.it/ggf74213hre21.jpg',
-    username: 'example_username',
-    subreddit: 'example_subreddit',
-    postAge: '2d',
-  },
-  {
-    title: 'example title 3',
-    uri: 'https://i.redd.it/2ucsi86mare21.jpg',
-    username: 'example_username',
-    subreddit: 'example_subreddit',
-    postAge: '5hr',
-  },
-  {
-    title: 'example title 4',
-    uri: 'https://i.imgur.com/h5s1ySA.jpg',
-    username: 'example_username',
-    subreddit: 'example_subreddit',
-    postAge: '25m',
-  },
-  {
-    title: 'example title 5',
-    uri: 'https://i.imgur.com/h5s1ySA.jpg',
-    username: 'example_username',
-    subreddit: 'example_subreddit',
-    postAge: '5s',
-  },
-  {
-    title: 'example title 6',
-    uri: 'https://i.imgur.com/h5s1ySA.jpg',
-    username: 'example_username',
-    subreddit: 'example_subreddit',
-    postAge: '1hr',
-  },
-  {
-    title: 'example title 7',
-    uri: 'https://i.imgur.com/h5s1ySA.jpg',
-    username: 'example_username',
-    subreddit: 'example_subreddit',
-    postAge: '5.2y',
-  },
-] as Array<SlideProps>

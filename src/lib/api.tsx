@@ -1,6 +1,7 @@
 import {SaveTokens, DeleteTokens, TokensExist, GetTokens, RefreshTokens} from './tokenStorage';
 import {tokenRequest, authedRequest, unauthedRequest} from './requests';
 import {convertToQueryParamString} from './utils';
+const base64 = require('base-64')
 
 const BASE_URL = 'https://oauth.reddit.com';
 const ACCESS_TOKEN_URL = 'https://www.reddit.com/api/v1/access_token';
@@ -24,7 +25,7 @@ export interface QueryParams {
 
 export const api = {
   loginURL: function() {
-    const state = btoa(Math.random().toString());
+    const state = base64.encode(Math.random().toString());
     return {
       state: state,
       url: `https://www.reddit.com/api/v1/authorize?client_id=${

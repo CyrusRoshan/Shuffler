@@ -14,7 +14,6 @@ import Colors from '../constants/Colors';
 
 export interface Props {
   title: string
-  offline: boolean
   uri: string
   username?: string
   subreddit: string
@@ -22,7 +21,6 @@ export interface Props {
 }
 
 interface State {
-  offline: boolean,
   slideWidth: number,
   widthFitter: object
   heightFitter: object
@@ -41,7 +39,6 @@ export default class Slide extends React.Component<Props, State> {
     const windowWidth = Dimensions.get('window').width;
 
     this.state = {
-      offline: props.offline,
       slideWidth: (windowWidth - SLIDEPADDING * 2),
       widthFitter: {
         padding: SLIDEPADDING,
@@ -78,6 +75,29 @@ export default class Slide extends React.Component<Props, State> {
           </TouchableOpacity>
         </View>
 
+        <View style={styles.postInfo}>
+          <TouchableOpacity style={styles.footerLink}>
+            <Text
+              adjustsFontSizeToFit={true}
+              numberOfLines={1}
+              style={styles.footerText}
+            >
+              {this.props.subreddit}
+            </Text>
+          </TouchableOpacity>
+
+          <View style={styles.combiner}>
+            <Feather style={styles.footerText} name='clock' size={35} color={Colors.white} />
+            <Text
+              adjustsFontSizeToFit={true}
+              numberOfLines={1}
+              style={[styles.footerText, styles.postAge]}
+            >
+              {this.props.postAge}
+            </Text>
+          </View>
+        </View>
+
         <View style={styles.imageContainer}>
           <TouchableOpacity>
             <Image style={[styles.image, this.state.heightFitter]}
@@ -89,37 +109,6 @@ export default class Slide extends React.Component<Props, State> {
             ></Image>
           </TouchableOpacity>
         </View>
-
-        <View style={styles.footer}>
-          <View style={styles.footerInfo}>
-            <TouchableOpacity style={styles.footerLink}>
-              <Text
-                adjustsFontSizeToFit={true}
-                numberOfLines={1}
-                style={styles.footerText}
-              >
-                {this.props.subreddit}
-              </Text>
-            </TouchableOpacity>
-
-            <View style={styles.combiner}>
-              <Feather style={styles.footerText} name='clock' size={35} color={Colors.white} />
-              <Text
-                adjustsFontSizeToFit={true}
-                numberOfLines={1}
-                style={[styles.footerText, styles.postAge]}
-              >
-                {this.props.postAge}
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.offlineIconBox}>
-            <TouchableOpacity>
-              <Feather style={styles.offlineIcon} name='download-cloud' size={35} color={Colors.white} />
-            </TouchableOpacity>
-          </View>
-        </View>
       </View>
     )
   }
@@ -129,19 +118,12 @@ export default class Slide extends React.Component<Props, State> {
 const styles = StyleSheet.create({
   root: {
     marginTop: 5,
-    paddingBottom: 30,
+    paddingBottom: 10,
 
     flex: 1,
     flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
-
-    shadowOpacity: 0.5,
-    shadowRadius: 10,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    }
   },
 
   header: {
@@ -171,6 +153,9 @@ const styles = StyleSheet.create({
     width: '100%',
     padding: IMAGEPADDING,
     backgroundColor: SLIDECOLOR,
+
+    borderBottomLeftRadius: 10,
+    borderBottomRightRadius: 10,
   },
 
   image: {
@@ -179,30 +164,9 @@ const styles = StyleSheet.create({
     width: '100%',
   },
 
-  footer: {
+  postInfo: {
+    flex: 1,
     backgroundColor: SLIDECOLOR,
-    width: '100%',
-    flexDirection: 'row',
-    justifyContent: 'space-evenly',
-    borderBottomLeftRadius: 10,
-    borderBottomRightRadius: 10,
-  },
-
-  offlineIconBox: {
-    height: '100%',
-    padding: 10,
-    backgroundColor: Colors.darkGray,
-    borderTopLeftRadius: 10,
-    borderBottomRightRadius: 10,
-  },
-
-  offlineIcon: {
-    flex: 1,
-    fontSize: 25,
-  },
-
-  footerInfo: {
-    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-start',

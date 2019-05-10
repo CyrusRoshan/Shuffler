@@ -7,20 +7,53 @@ import { NavigationScreenProp } from 'react-navigation';
 
 import CustomCarousel from '../components/CustomCarousel';
 import Colors from '../constants/Colors';
-import api from '../lib/api';
+import { PostData } from '../components/Post';
+import { storage } from '../lib/storage';
+import { shuffle } from '../lib/utils';
 
 export interface Props {
 	navigation: NavigationScreenProp<any>
 };
 
 interface State {
-  loadQueue: Array<number>
-  imgList: Array<string>
+  postData: PostData[]
 }
 
 export default class AllSaved extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
+
+    this.state = {
+      postData: []
+    }
+    this.getPostsData();
+  }
+
+  async getPostsData() {
+    // Get all posts
+    const postIDs = await storage.postIDList().get()
+    if (!postIDs) {
+      throw (`postIDs are not valid`)
+    }
+
+    // Shuffle posts
+    shuffle(postIDs);
+
+    // Get post data
+    const postData = new Array(postIDs.length) as PostData[];
+    for (var i = 0; i < postIDs.length; i++) {
+      const data = await storage.postData().get(postIDs[i]);
+      if (!data) {
+        throw (`data is not valid for post with id ${postIDs[i]}`)
+      }
+
+      postData[i] = data;
+    }
+
+    // Save shuffled post data to state
+    this.setState({
+      postData: postData,
+    })
   }
 
 	render() {
@@ -29,7 +62,7 @@ export default class AllSaved extends Component<Props, State> {
         <Text style={styles.title}>all saved posts</Text>
 
         <View style={styles.postHolder}>
-          <CustomCarousel></CustomCarousel>
+          <CustomCarousel postData={this.state.postData}></CustomCarousel>
         </View>
 			</View>
 		);
