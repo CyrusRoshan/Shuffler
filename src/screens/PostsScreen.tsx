@@ -10,13 +10,20 @@ import Colors from '../constants/Colors';
 import { PostData } from '../components/Post';
 import { storage } from '../lib/storage';
 import { shuffle } from '../lib/utils';
+import { PostCache } from '../components/PostCache';
 
 export interface Props {
 	navigation: NavigationScreenProp<any>
 };
 
+interface PostImageData {
+  postImage: string,
+  postImageHeight: number,
+}
+
 interface State {
-  postData: PostData[]
+  postCache?: PostCache,
+  postData: PostData[],
   clickableLinks: boolean,
   savePostImages: boolean,
 }
@@ -54,12 +61,17 @@ export default class PostsScreen extends Component<Props, State> {
       postData[i] = data;
     }
 
+    // Preload post cache
+    const postCache = new PostCache({postData, loadAheadCount: 2});
+    postCache.preload(3);
+
     // Get settings and pass on
     const savePostImages = await storage.settings().savePostImages().get();
     const clickableLinks = await storage.settings().clickableLinks().get();
 
     // Save shuffled post data to state
     this.setState({
+      postCache,
       postData,
       savePostImages,
       clickableLinks,
@@ -67,15 +79,21 @@ export default class PostsScreen extends Component<Props, State> {
   }
 
 	render() {
+    var scroller;
+    if (this.state.postCache) {
+      scroller = <PostScroller
+        cache={this.state.postCache}
+        postData={this.state.postData}
+        clickableLinks={this.state.clickableLinks}
+        savePostImages={this.state.savePostImages}></PostScroller>
+    }
+
 		return (
 			<View style={styles.container}>
         <Text style={styles.title}>all saved posts</Text>
 
         <View style={styles.postHolder}>
-          <PostScroller
-          postData={this.state.postData}
-          clickableLinks={this.state.clickableLinks}
-          savePostImages={this.state.savePostImages}></PostScroller>
+          {scroller}
         </View>
 			</View>
 		);

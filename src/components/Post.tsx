@@ -11,8 +11,9 @@ import {
 
 import Feather from 'react-native-vector-icons/Feather';
 import Colors from '../constants/Colors';
-import { storage } from '../lib/storage';
+import { ImageData } from '../lib/storage';
 import { getReadableDateSince } from '../lib/utils';
+import { PostCache } from './PostCache';
 
 export interface PostData {
   url: string,
@@ -39,14 +40,17 @@ export const parsePost = (postData: any) => {
 }
 
 interface Props {
+  index: number,
+  cache: PostCache,
+
   data: PostData,
+
   clickableLinks: boolean
   savePostImages: boolean
 }
 
 interface State {
-  imageData: string,
-  imageWidth?: number,
+  rawImg: string,
   imageHeight?: number,
 }
 
@@ -55,73 +59,39 @@ export class Post extends React.Component<Props, State> {
     super(props);
 
     this.state = {
-      imageData: '',
+      rawImg: '',
     }
   }
 
   _isMounted = false;
 
+  async getImageData() {
+    const imageData = await this.props.cache.Get(this.props.index);
+
+    // Size image
+    const screenWidth = Dimensions.get('window').width;
+    const scaleFactor = imageData.width / screenWidth;
+    const imageHeight = imageData.height / scaleFactor;
+
+    if (this._isMounted) {
+      this.setState({
+        rawImg: imageData.data,
+        imageHeight,
+      })
+    }
+  }
+
   componentDidMount() {
     this._isMounted = true;
     this.getImageData();
   }
+
   componentWillUnmount() {
     this._isMounted = false;
   }
 
-  async fitImage() {
-    Image.getSize(this.state.imageData, (width, height) => {
-      const screenWidth = Dimensions.get('window').width;
-      const scaleFactor = width / screenWidth;
-      const imageHeight = height / scaleFactor;
-      if (this._isMounted) {
-        this.setState({
-          imageWidth: screenWidth,
-          imageHeight: imageHeight
-        })
-      }
-    }, console.error)
-  }
-
-  async getImageData() {
-    // Get image data if it exists
-    const imageData = await storage.postImageData().get(this.props.data.prefixed_id)
-    if (imageData !== null) {
-      if (this._isMounted) {
-        this.setState({ imageData }, this.fitImage);
-      }
-      return;
-    }
-
-    // Read image as data url
-    const image = await fetch(this.props.data.url)
-    const blob = await image.blob()
-    const fetchedImageData = await new Promise<string>((resolve, reject) => {
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        if (typeof reader.result === "string") {
-          resolve(reader.result)
-          return
-        }
-        reject(reader.result)
-      }
-      reader.onerror = reject
-      reader.readAsDataURL(blob)
-    })
-
-    // Save and update image data
-    if (this._isMounted) {
-      this.setState({
-        imageData: fetchedImageData
-      }, this.fitImage);
-    }
-    if (this.props.savePostImages) {
-      storage.postImageData().save(this.props.data.prefixed_id, fetchedImageData);
-    }
-  }
-
   render() {
-    if (!this.state.imageData) {
+    if (!this.state.rawImg) {
       return <View style={{ width: '100%', height: 400 }}></View>
     }
 
@@ -158,13 +128,16 @@ export class Post extends React.Component<Props, State> {
               </View>
             </View>
           </View>
-          <Image style={
-            {
-              width: this.state.imageWidth || '100%',
-              height: this.state.imageHeight || 400,
-              resizeMode: 'cover',
-            }
-          } source={{ uri: this.state.imageData }} />
+          <View style={{width: '100%', backgroundColor: Colors.lightBlack}}>
+            <Image style={
+              {
+                flex: 1,
+                width: '100%',
+                height: this.state.imageHeight || 200,
+                resizeMode: 'cover',
+              }
+            } source={{ uri: this.state.rawImg }} />
+          </View>
         </View>
         <View style={{ marginBottom: 30 }}></View>
       </>

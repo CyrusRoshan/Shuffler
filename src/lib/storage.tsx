@@ -7,6 +7,12 @@ function prefix(pre: string, str: string) {
   return pre + '-' + str;
 }
 
+export interface ImageData {
+  data: string,
+  width: number,
+  height: number,
+}
+
 export const storage = {
   irreversablyClearAllData: AsyncStorage.clear,
 
@@ -84,25 +90,26 @@ export const storage = {
   //
   // POST_IMAGE_DATA = string (post ID) => string (base64 image data)
   //
-  postImageData: () => {
+  imageData: () => {
     const PREFIX = 'POST_IMAGE_DATA';
 
     return {
-      get: async function (postID: string) {
-        const imageData = await AsyncStorage.getItem(prefix(PREFIX, postID));
-        if (!imageData) {
-          return null;
+      get: async function (postID: string): Promise<ImageData|undefined> {
+        const imageDataString = await AsyncStorage.getItem(prefix(PREFIX, postID));
+        if (!imageDataString) {
+          return undefined;
         }
 
-        return imageData;
+        return JSON.parse(imageDataString) as ImageData;
       },
 
-      save: async function (postID: string, imageData: string) {
+      save: async function (postID: string, imageData: ImageData) {
         if (!postID || !imageData) {
           throw (ERR_NULL_VALUE);
         }
 
-        return await AsyncStorage.setItem(prefix(PREFIX, postID), imageData);
+        const serialized = JSON.stringify(imageData);
+        return await AsyncStorage.setItem(prefix(PREFIX, postID), serialized);
       },
     }
   },

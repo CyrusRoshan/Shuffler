@@ -7,8 +7,10 @@ import {
 
 import Colors from '../constants/Colors';
 import { Post, PostData } from './Post';
+import { PostCache } from './PostCache';
 
 export interface Props {
+  cache: PostCache,
   postData: PostData[]
   savePostImages: boolean
   clickableLinks: boolean
@@ -38,7 +40,7 @@ export default class PostScroller extends Component<Props, State> {
         windowSize={5}
         maxToRenderPerBatch={5}
         initialNumToRender={2}
-        renderItem={(info) => <Post data={info.item} clickableLinks={this.props.clickableLinks} savePostImages={this.props.savePostImages}/>}
+        renderItem={(info) => <Post index={info.index} cache={this.props.cache} data={info.item} clickableLinks={this.props.clickableLinks} savePostImages={this.props.savePostImages}/>}
         keyExtractor={(item, index) => item.prefixed_id }
       />
     );
