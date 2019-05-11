@@ -11,7 +11,6 @@ import {
 
 import Feather from 'react-native-vector-icons/Feather';
 import Colors from '../constants/Colors';
-import { ImageData } from '../lib/storage';
 import { getReadableDateSince } from '../lib/utils';
 import { PostCache } from './PostCache';
 
@@ -66,7 +65,7 @@ export class Post extends React.Component<Props, State> {
   _isMounted = false;
 
   async getImageData() {
-    const imageData = await this.props.cache.Get(this.props.index);
+    const imageData = await this.props.cache.get(this.props.index);
 
     // Size image
     const screenWidth = Dimensions.get('window').width;

@@ -61,9 +61,8 @@ export default class PostsScreen extends Component<Props, State> {
       postData[i] = data;
     }
 
-    // Preload post cache
-    const postCache = new PostCache({postData, loadAheadCount: 2});
-    postCache.preload(3);
+    // Create post cache
+    const postCache = new PostCache({postData});
 
     // Get settings and pass on
     const savePostImages = await storage.settings().savePostImages().get();

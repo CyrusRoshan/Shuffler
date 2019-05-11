@@ -4,7 +4,6 @@ import { storage, ImageData } from '../lib/storage';
 
 interface Props {
   postData: PostData[],
-  loadAheadCount: number, // number of following items to preload
 }
 
 interface State {
@@ -23,29 +22,10 @@ export class PostCache {
     }
   }
 
-  preload(initialCount: number) {
-    // preloads next few
-    for (var i = 0; i < initialCount; i++) {
-      this.get(i); // warm cache
-    }
-  }
-
-  // same as get() but warms cache on the next few as well
-  async Get(index: number) {
-    const imageDataAndSize = await this.get(index);
-
-    // Warm cache for next few items
-    for (var i = index; i < (index + this.props.loadAheadCount); i++) {
-      this.get(i);
-    }
-    return imageDataAndSize;
-  }
-
   // either get from cache (fast)
   // get from saved disk (slow)
   // or get from url (slower)
   async get(index: number) {
-    console.log("GETTING", index)
     // Check cache
     const cached = this.state.cache[index]
     if (cached) {
