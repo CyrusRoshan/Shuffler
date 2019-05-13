@@ -1,6 +1,6 @@
 import React, { ReactNode } from 'react';
 import { Component } from 'react';
-import { StyleSheet, Text, View, Linking } from 'react-native';
+import { Alert, StyleSheet, Text, View, Linking } from 'react-native';
 
 import { ifIphoneX } from 'react-native-iphone-x-helper';
 import { NavigationScreenProp } from 'react-navigation';
@@ -11,7 +11,7 @@ import {api, QueryParams} from '../lib/api';
 import { storage } from '../lib/storage';
 import { sleep, updater, getReadableTimeUntil } from '../lib/utils';
 import { BooleanOption, ClickOption } from '../components/Option';
-import { GetTokens, TokenHolder } from '../lib/tokenStorage';
+import { GetTokens, TokenHolder, DeleteTokens } from '../lib/tokenStorage';
 
 export interface Props {
   navigation: NavigationScreenProp<any>
@@ -118,6 +118,7 @@ export default class SettingsScreen extends Component<Props, State> {
 
   async clearAllData() {
     await storage.irreversablyClearAllData()
+    await DeleteTokens();
     this.setState({
       loggedIn: false,
       name: '',
@@ -234,8 +235,12 @@ export default class SettingsScreen extends Component<Props, State> {
         debugAuthOptions = (<>
           <ClickOption optionText="Revalidate auth tokens?"
             action={() => this.revalidateAuth()} />
-          <ClickOption optionText="Clear ALL data?"
-            action={() => this.clearAllData()} />
+          <ClickOption optionText="Clear all data?"
+            action={() => alertUser(
+              'Are you sure?',
+              'This will clear posts, settings, everything!',
+              this.clearAllData.bind(this)
+            )}/>
         </>)
 
         if (!this.state.tokens) {
@@ -250,7 +255,7 @@ export default class SettingsScreen extends Component<Props, State> {
         <>
           <Text style={styles.regularText}>-----------------</Text>
           <Text style={styles.regularText}>Logged in, {this.state.name}!</Text>
-          <Text style={styles.regularText}>Saved post count: {this.state.savedItemCount}</Text>
+          <Text style={styles.regularText}>Cached post count: {this.state.savedItemCount}</Text>
           {debugInfo}
           <Text style={styles.regularText}>-----------------</Text>
         </>
@@ -274,7 +279,11 @@ export default class SettingsScreen extends Component<Props, State> {
 
           <Text style={styles.subtitle}>Auth</Text>
           <ClickOption optionText="Log out?"
-            action={() => this.logOut()}/>
+            action={() => alertUser(
+            'Are you sure?',
+            `Just FYI, logging you out won't delete your cached on-device post or image data.`,
+            this.logOut.bind(this)
+          )}/>
           {debugAuthOptions}
         </>
       )
@@ -300,6 +309,21 @@ export default class SettingsScreen extends Component<Props, State> {
       </View>
     );
   }
+}
+
+function alertUser(title: string, message: string, onConfirm: () => void) {
+  Alert.alert(
+    title,
+    message,
+    [
+      {
+        text: 'Cancel',
+        style: 'cancel',
+      },
+      { text: "Yes, I'm Sure", onPress: onConfirm },
+    ],
+    { cancelable: true },
+  );
 }
 
 const styles = StyleSheet.create({

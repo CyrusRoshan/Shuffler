@@ -104,12 +104,10 @@ export class Post extends React.Component<Props, State> {
   }
 
   deletePost() {
-    console.log("REQUEST TO DELETE");
     Animated.timing(this.state.animVal, {
       toValue: 1,
-      duration: 1000,
+      duration: 500,
     }).start(() => {
-      console.log("STATE SET, DELETING");
       // TODO: delete from reddit API
       storage.imageData().delete(this.props.data.prefixed_id);
       storage.postData().delete(this.props.data.prefixed_id);
@@ -182,18 +180,17 @@ export class Post extends React.Component<Props, State> {
         }),
       }}>
         <Swipeout
+          style={styles.rootContainer}
           backgroundColor={'transparent'}
           right={this.swipeoutButtons}>
-          <View style={styles.rootContainer}>
-            <View style={{
-              paddingTop: 5,
-              paddingHorizontal: 5,
-            }}>
-              {title}
-              {postInfo}
-            </View>
-            {postImage}
+          <View style={{
+            paddingTop: 5,
+            paddingHorizontal: 5,
+          }}>
+            {title}
+            {postInfo}
           </View>
+          {postImage}
         </Swipeout>
       </Animated.View>
     )

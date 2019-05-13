@@ -22,6 +22,7 @@ interface PostImageData {
 }
 
 interface State {
+  isEmpty?: boolean,
   postCache?: PostCache,
   postData: PostData[],
   clickableLinks: boolean,
@@ -44,7 +45,8 @@ export default class PostsScreen extends Component<Props, State> {
     // Get all posts
     const postIDs = await storage.postIDList().get()
     if (!postIDs) {
-      throw (`postIDs are not valid`)
+      this.setState({isEmpty: true});
+      return;
     }
 
     // Shuffle posts
@@ -78,13 +80,19 @@ export default class PostsScreen extends Component<Props, State> {
   }
 
 	render() {
-    var scroller;
+    var body;
     if (this.state.postCache) {
-      scroller = <PostScroller
+      body = <PostScroller
         cache={this.state.postCache}
         postData={this.state.postData}
         clickableLinks={this.state.clickableLinks}
         savePostImages={this.state.savePostImages}></PostScroller>
+    }
+
+    if (this.state.isEmpty) {
+      body = <View style={styles.infoContainer}>
+        <Text style={styles.infoMessage}>You have no posts cached yet. Go to the settings page!</Text>
+      </View>
     }
 
 		return (
@@ -92,7 +100,7 @@ export default class PostsScreen extends Component<Props, State> {
         <Text style={styles.title}>all saved posts</Text>
 
         <View style={styles.postHolder}>
-          {scroller}
+          {body}
         </View>
 			</View>
 		);
@@ -121,7 +129,25 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		alignSelf: 'stretch',
 		color: Colors.lightWhite,
-	},
+  },
+
+	infoMessage: {
+		fontSize: 30,
+		lineHeight: 30,
+		fontWeight: '700',
+
+		textAlign: 'center',
+		alignSelf: 'stretch',
+    color: Colors.lightYellow,
+  },
+
+  infoContainer: {
+    flex: 1,
+    padding: 30,
+    paddingBottom: 70,
+    flexDirection: 'column',
+    justifyContent: 'center',
+  },
 
 	postHolder: {
     flex: 1,
