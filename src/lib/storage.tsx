@@ -20,9 +20,9 @@ export const storage = {
     const SETTINGS_PREFIX = 'SETTINGS';
 
     return {
-      username: () => stringGetterSaver(prefix(SETTINGS_PREFIX, "USERNAME")),
-      savePostImages: () => boolGetterSaver(prefix(SETTINGS_PREFIX, "SAVE_POST_IMAGES")),
-      clickableLinks: () => boolGetterSaver(prefix(SETTINGS_PREFIX, "CLICKABLE_LINKS")),
+      username: () => stringStorageTemplate(prefix(SETTINGS_PREFIX, "USERNAME")),
+      savePostImages: () => boolStorageTemplate(prefix(SETTINGS_PREFIX, "SAVE_POST_IMAGES")),
+      clickableLinks: () => boolStorageTemplate(prefix(SETTINGS_PREFIX, "CLICKABLE_LINKS")),
     }
   },
 
@@ -57,6 +57,16 @@ export const storage = {
 
       save: async function(postIDs: string[]) {
         return await AsyncStorage.setItem(PREFIX, JSON.stringify(postIDs));
+      },
+
+      deleteFrom: async function (postID: string) {
+        const savedPostIDs = await this.get()
+        if (savedPostIDs) {
+          const filteredPostIDs = savedPostIDs.filter((id) => id !== postID);
+          this.save(filteredPostIDs);
+          return true;
+        }
+        return false;
       }
     }
   },
@@ -83,6 +93,10 @@ export const storage = {
         }
         return await AsyncStorage.setItem(prefix(PREFIX, postID), JSON.stringify(postData));
       },
+
+      delete: async function (postID: string) {
+        return await AsyncStorage.removeItem(prefix(PREFIX, postID));
+      }
     }
   },
 
@@ -111,11 +125,15 @@ export const storage = {
         const serialized = JSON.stringify(imageData);
         return await AsyncStorage.setItem(prefix(PREFIX, postID), serialized);
       },
+
+      delete: async function (postID: string) {
+        return await AsyncStorage.removeItem(prefix(PREFIX, postID));
+      }
     }
   },
 }
 
-const stringGetterSaver = (key: string) => {
+const stringStorageTemplate = (key: string) => {
   return {
     save: async function (value: string) {
       if (!value) {
@@ -126,11 +144,15 @@ const stringGetterSaver = (key: string) => {
 
     get: async function () {
       return await AsyncStorage.getItem(key);
+    },
+
+    delete: async function () {
+      return await AsyncStorage.removeItem(key);
     }
   }
 }
 
-const boolGetterSaver = (key: string) => {
+const boolStorageTemplate = (key: string) => {
   return {
     save: async function (value: boolean) {
       if (value === undefined || value === null) {
@@ -145,6 +167,10 @@ const boolGetterSaver = (key: string) => {
         return false;
       }
       return Boolean(JSON.parse(value));
+    },
+
+    delete: async function () {
+      return await AsyncStorage.removeItem(key);
     }
   }
 }

@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+  Animated,
   Image,
   StyleSheet,
   Text,
@@ -9,10 +10,14 @@ import {
   Linking,
 } from 'react-native';
 
+import Swipeout from 'react-native-swipeout';
 import Feather from 'react-native-vector-icons/Feather';
+
 import Colors from '../constants/Colors';
 import { getReadableDateSince } from '../lib/utils';
 import { PostCache } from './PostCache';
+import { storage } from '../lib/storage';
+import api from '../lib/api';
 
 export interface PostData {
   url: string,
@@ -49,21 +54,33 @@ interface Props {
 }
 
 interface State {
-  rawImg: string,
+  deleted?: boolean,
+  rawImg?: string,
   imageHeight?: number,
+
+  animVal: Animated.Value
 }
 
 export class Post extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props);
-
     this.state = {
-      rawImg: '',
+      animVal: new Animated.Value(0),
     }
   }
 
   _isMounted = false;
 
+  componentDidMount() {
+    this._isMounted = true;
+    this.getImageData();
+  }
+
+  componentWillUnmount() {
+    this._isMounted = false;
+  }
+
+  // Get base64 imagedata and image size for render
   async getImageData() {
     const imageData = await this.props.cache.get(this.props.index);
 
@@ -80,73 +97,123 @@ export class Post extends React.Component<Props, State> {
     }
   }
 
-  componentDidMount() {
-    this._isMounted = true;
-    this.getImageData();
+  clickFunc = (path: string) => () => {
+    if (this.props.clickableLinks) {
+      Linking.openURL("https://www.reddit.com" + path);
+    }
   }
 
-  componentWillUnmount() {
-    this._isMounted = false;
+  deletePost() {
+    console.log("REQUEST TO DELETE");
+    Animated.timing(this.state.animVal, {
+      toValue: 1,
+      duration: 1000,
+    }).start(() => {
+      console.log("STATE SET, DELETING");
+      storage.imageData().delete(this.props.data.prefixed_id);
+      storage.postData().delete(this.props.data.prefixed_id);
+      storage.postIDList().deleteFrom(this.props.data.prefixed_id);
+    });
   }
+
+  swipeoutButtons = [
+    {
+      text: 'Delete',
+      backgroundColor: Colors.lightRed,
+      underlayColor: Colors.darkRed,
+      color: Colors.lightWhite,
+      onPress: this.deletePost.bind(this),
+    }
+  ]
+
+  timeDiff = Date.now() - this.props.data.created_utc * 1000; // This date is in s not ms
+  readableTimeDiff = getReadableDateSince(this.timeDiff);
 
   render() {
+    if (this.state.deleted) {
+      return <></>;
+    }
     if (!this.state.rawImg) {
-      return <View style={{ width: '100%', height: 400 }}></View>
+      return <View style={styles.imagePlaceholder}></View>;
     }
 
-    const clickFunc = (path: string) => () => {
-      if (this.props.clickableLinks) {
-        Linking.openURL("https://www.reddit.com" + path);
-      }
-    }
+    const title = (
+      <Text style={styles.postTitle}
+        adjustsFontSizeToFit={true}
+        numberOfLines={4}
+        onPress={this.clickFunc(this.props.data.permalink)}>{this.props.data.title}</Text>
+    );
+    const postInfo = (
+      <View style={styles.container}>
+        <Text
+          style={[styles.containerElement, styles.regularText, styles.descLinks, { color: Colors.darkGreen }]}
+          onPress={this.clickFunc("/u/" + this.props.data.author)}>u/{this.props.data.author}</Text>
 
-    const timeDiff = Date.now() - this.props.data.created_utc * 1000; // This date is in s not ms
-    const readableTimeDiff = getReadableDateSince(timeDiff);
-    return (
-      <>
-        <View style={{ marginTop: 5 }}></View>
-        <View>
-          <View style={{
-            paddingTop: 5,
-            paddingHorizontal: 5,
-          }}>
-            <Text style={styles.postTitle}
-              adjustsFontSizeToFit={true}
-              numberOfLines={4}
-              onPress={clickFunc(this.props.data.permalink)}>{this.props.data.title}</Text>
-            <View style={styles.container}>
-              <Text
-                style={[styles.containerElement, styles.regularText, styles.descLinks, {color: Colors.darkGreen}]}
-                onPress={clickFunc("/u/" + this.props.data.author)}>u/{this.props.data.author}</Text>
+        <Text
+          style={[styles.containerElement, styles.regularText, styles.descLinks, { color: Colors.darkYellow }]}
+          onPress={this.clickFunc("/r/" + this.props.data.subreddit)}>r/{this.props.data.subreddit}</Text>
 
-              <Text
-                style={[styles.containerElement, styles.regularText, styles.descLinks, {color: Colors.darkYellow}]}
-                onPress={clickFunc("/r/" + this.props.data.subreddit)}>r/{this.props.data.subreddit}</Text>
-
-              <View style={[styles.containerElement, {flexDirection: 'row', justifyContent: 'center'}, styles.descLinks]}>
-                <Feather style={[styles.regularText, { color: Colors.darkWhite }]} name='clock' size={30}/>
-                <Text style={[styles.regularText, { color: Colors.darkWhite }]}> {readableTimeDiff} ago</Text>
-              </View>
-            </View>
-          </View>
-          <View style={{width: '100%', backgroundColor: Colors.lightBlack}}>
-            <Image style={
-              {
-                flex: 1,
-                width: '100%',
-                height: this.state.imageHeight || 200,
-                resizeMode: 'cover',
-              }
-            } source={{ uri: this.state.rawImg }} />
-          </View>
+        <View style={[styles.containerElement, { flexDirection: 'row', justifyContent: 'center' }, styles.descLinks]}>
+          <Feather style={[styles.regularText, { color: Colors.darkWhite }]} name='clock' size={30} />
+          <Text style={[styles.regularText, { color: Colors.darkWhite }]}> {this.readableTimeDiff} ago</Text>
         </View>
-        <View style={{ marginBottom: 30 }}></View>
-      </>
+      </View>
+    );
+    const postImage = (
+      <View style={{ width: '100%', backgroundColor: Colors.lightBlack }}>
+        <Image style={{
+            flex: 1,
+            width: '100%',
+            height: this.state.imageHeight || 200,
+            resizeMode: 'cover',
+          }} source={{ uri: this.state.rawImg }} />
+      </View>
+    );
+
+    return (
+      <Animated.View style={{
+        left: this.state.animVal.interpolate({
+          inputRange: [0, 1],
+          outputRange: ['0%', '-200%']  // 0 : 150, 0.5 : 75, 1 : 0
+        }),
+        maxHeight: this.state.animVal.interpolate({
+          inputRange: [0, 1],
+          outputRange: ['100%', '0%']  // 0 : 150, 0.5 : 75, 1 : 0
+        }),
+      }}>
+        <Swipeout
+          backgroundColor={'transparent'}
+          right={this.swipeoutButtons}>
+          <View style={styles.rootContainer}>
+            <View style={{
+              paddingTop: 5,
+              paddingHorizontal: 5,
+            }}>
+              {title}
+              {postInfo}
+            </View>
+            {postImage}
+          </View>
+        </Swipeout>
+      </Animated.View>
     )
   }
 }
 
 const styles = StyleSheet.create({
+  rootContainer: {
+    marginTop: 10,
+    marginBottom: 15,
+
+    borderBottomColor: Colors.black,
+    borderBottomWidth: 2,
+  },
+
+  imagePlaceholder: {
+    width: '100%',
+    height: 400
+  },
+
   postTitle: {
     fontSize: 20,
     fontWeight: '900',

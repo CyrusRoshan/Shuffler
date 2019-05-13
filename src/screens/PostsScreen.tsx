@@ -48,7 +48,7 @@ export default class PostsScreen extends Component<Props, State> {
     }
 
     // Shuffle posts
-    shuffle(postIDs);
+    // shuffle(postIDs);
 
     // Get post data
     const postData = new Array(postIDs.length) as PostData[];
