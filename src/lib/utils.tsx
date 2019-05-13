@@ -60,11 +60,21 @@ export function shuffle(arr: any[]) {
   }
 }
 
-export function getReadableDateSince(dateInMS: number) {
+export function getReadableTimeSince(dateInMs: number) {
+  const now = Date.now();
+  return getReadableTime(now - dateInMs);
+}
+
+export function getReadableTimeUntil(dateInMs: number) {
+  const now = Date.now();
+  return getReadableTime(dateInMs - now);
+}
+
+export function getReadableTime(timeInMs: number) {
   const times =    ["ms", "s", "min", "hrs", "d", "mo", "y"];
   const divisors = [1000, 60, 60, 24, 30, 12];
 
-  var curr = dateInMS;
+  var curr = timeInMs;
   var i = 0
   for (; i < divisors.length; i++) {
     const rounded = Math.round(curr / divisors[i]);

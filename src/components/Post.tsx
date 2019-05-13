@@ -14,7 +14,7 @@ import Swipeout from 'react-native-swipeout';
 import Feather from 'react-native-vector-icons/Feather';
 
 import Colors from '../constants/Colors';
-import { getReadableDateSince } from '../lib/utils';
+import { getReadableTimeSince } from '../lib/utils';
 import { PostCache } from './PostCache';
 import { storage } from '../lib/storage';
 import api from '../lib/api';
@@ -110,6 +110,7 @@ export class Post extends React.Component<Props, State> {
       duration: 1000,
     }).start(() => {
       console.log("STATE SET, DELETING");
+      // TODO: delete from reddit API
       storage.imageData().delete(this.props.data.prefixed_id);
       storage.postData().delete(this.props.data.prefixed_id);
       storage.postIDList().deleteFrom(this.props.data.prefixed_id);
@@ -126,8 +127,7 @@ export class Post extends React.Component<Props, State> {
     }
   ]
 
-  timeDiff = Date.now() - this.props.data.created_utc * 1000; // This date is in s not ms
-  readableTimeDiff = getReadableDateSince(this.timeDiff);
+  readableTimeDiff = getReadableTimeSince(this.props.data.created_utc * 1000); // This date is in s not ms
 
   render() {
     if (this.state.deleted) {

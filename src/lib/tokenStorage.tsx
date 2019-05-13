@@ -1,19 +1,26 @@
 import AsyncStorage from '@react-native-community/async-storage';
 import api from './api';
+import { getReadableTimeUntil } from './utils';
 const TOKEN_KEY = 'SERIALIZED-TOKENS';
+
+export interface TokenHolder {
+  AuthToken: string,
+  RefreshToken: string,
+  RefreshDate: Date,
+}
 
 var Tokens = {
   AuthToken: '',
   RefreshToken: '',
   RefreshDate: new Date(),
-};
+} as TokenHolder;
 
-export const SaveTokens = async (authToken: string, refreshToken: string, refreshTime: string) => {
+export const SaveTokens = async (authToken: string, refreshToken: string, refreshTime: number) => {
   Tokens.AuthToken = authToken;
   Tokens.RefreshToken = refreshToken;
 
   var d = new Date()
-  d.setSeconds(d.getSeconds() + Number(refreshTime) - 5); // Decrement just in case of latency when recieving message
+  d.setSeconds(d.getSeconds() + refreshTime - 5); // Decrement just in case of latency when recieving message
   Tokens.RefreshDate =  d;
 
   return await AsyncStorage.setItem(TOKEN_KEY, JSON.stringify(Tokens))
@@ -41,7 +48,7 @@ export const RefreshTokens = async function() {
   const tokens = await getTokens();
   const refreshData = await api.refresh(tokens.RefreshToken);
 
-  await SaveTokens(refreshData.accessToken, tokens.RefreshToken, refreshData.expires_in)
+  await SaveTokens(refreshData.accessToken, tokens.RefreshToken, Number(refreshData.expires_in) * 1000) // Reddit stores this in S not MS
   return getTokens();
 }
 
@@ -53,9 +60,8 @@ export const GetTokens = async function() {
     console.log("AUTOMATICALLY REFRESHING THE TOKENS")
     RefreshTokens();
   }
-  const timeDiff = tokens.RefreshDate.getTime() - now.getTime();
-  console.log(`Time before token in seconds: ${Math.floor(timeDiff / 1000)}. In minutes: ${Math.floor(timeDiff / 1000 / 60)}`);
 
+  console.log(`Time before token expires: ${getReadableTimeUntil(tokens.RefreshDate.getTime())}`);
   return tokens;
 }
 

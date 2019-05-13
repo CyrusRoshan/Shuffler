@@ -9,6 +9,7 @@ export interface BoolProps {
 
   getter: () => Promise<boolean> | boolean
   setter: (value: boolean) => any
+  onStateChange?: (value: boolean) => any
 };
 
 interface BoolState {
@@ -30,20 +31,22 @@ export class BooleanOption extends Component<BoolProps, BoolState> {
       };
 
       getter.then(value => {
-        this.setState({
-          enabled: value
-        })
+        this.switchStateTo(value);
       })
     }
   }
 
-  switchState(enabled: boolean) {
-    this.props.setter(!enabled);
-    this.setState({enabled: !enabled});
+  switchStateTo(enabled: boolean) {
+    this.props.setter(enabled);
+    this.setState({enabled: enabled});
+
+    if (this.props.onStateChange) {
+      this.props.onStateChange(enabled);
+    }
   }
 
   render() {
-    const switchFunc = () => this.switchState(this.state.enabled);
+    const switchFunc = () => this.switchStateTo(!this.state.enabled);
     const valueText = this.state.enabled ? "Yes" : "No";
     const style = this.state.enabled ? styles.yes : styles.no;
 

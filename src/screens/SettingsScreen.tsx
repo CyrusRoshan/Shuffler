@@ -9,18 +9,22 @@ import Colors from '../constants/Colors';
 import {Post, parsePost} from '../components/Post';
 import {api, QueryParams} from '../lib/api';
 import { storage } from '../lib/storage';
-import { sleep, updater } from '../lib/utils';
+import { sleep, updater, getReadableTimeUntil } from '../lib/utils';
 import { BooleanOption, ClickOption } from '../components/Option';
+import { GetTokens, TokenHolder } from '../lib/tokenStorage';
 
 export interface Props {
   navigation: NavigationScreenProp<any>
 };
 
 interface State {
-  loggedIn: boolean,
-  name: string,
+  debug?: boolean,
+  tokens?: TokenHolder,
 
-  savedItemCount: number,
+  loggedIn?: boolean,
+  name?: string,
+
+  savedItemCount?: number,
 
   populating: boolean,
   totalToFetch: number,
@@ -33,11 +37,6 @@ export default class SettingsScreen extends Component<Props, State> {
     super(props)
 
     this.state = {
-      loggedIn: false,
-      name: '',
-
-      savedItemCount: 0,
-
       populating: false,
       totalFetched: 0,
       totalToFetch: 0,
@@ -100,7 +99,9 @@ export default class SettingsScreen extends Component<Props, State> {
       storage.settings().username().save(username);
     }
 
+    const tokens = await GetTokens()
     this.setState({
+      tokens,
       loggedIn: true,
       name: username,
     });
@@ -159,7 +160,7 @@ export default class SettingsScreen extends Component<Props, State> {
     // Updater to handle fetch progress
     const fetchPhasePct = 70;
     const fetchPhaseUpdater = updater(0, fetchPhasePct, 100, updateFunc);
-    const savedItems = await api.user(this.state.name).allSaved(props, fetchPhaseUpdater)
+    const savedItems = await api.user(this.state.name || '').allSaved(props, fetchPhaseUpdater)
 
     // Filter out non-image posts
     const savedImages = savedItems.filter((item) => {
@@ -210,8 +211,6 @@ export default class SettingsScreen extends Component<Props, State> {
   }
 
   render() {
-    // Display authed/unauthed page
-
     var loginButton;
     if (!this.state.loggedIn) {
       loginButton = (
@@ -223,14 +222,36 @@ export default class SettingsScreen extends Component<Props, State> {
       )
     }
 
+    // Only displayed if logged in
     var userInfo;
     var loggedInOptions;
     if (this.state.loggedIn) {
+
+      // Only displayed if debug mode is on
+      var debugInfo;
+      var debugAuthOptions;
+      if (this.state.debug) {
+        debugAuthOptions = (<>
+          <ClickOption optionText="Revalidate auth tokens?"
+            action={() => this.revalidateAuth()} />
+          <ClickOption optionText="Clear ALL data?"
+            action={() => this.clearAllData()} />
+        </>)
+
+        if (!this.state.tokens) {
+          debugInfo = <Text style={styles.regularText}>Error! No tokens found!</Text>
+        } else {
+          const expirationTime = this.state.tokens.RefreshDate.getTime();
+          debugInfo = <Text style={styles.regularText}>Token expires in: {getReadableTimeUntil(expirationTime)}</Text>
+        }
+      }
+
       userInfo = (
         <>
           <Text style={styles.regularText}>-----------------</Text>
           <Text style={styles.regularText}>Logged in, {this.state.name}!</Text>
           <Text style={styles.regularText}>Saved post count: {this.state.savedItemCount}</Text>
+          {debugInfo}
           <Text style={styles.regularText}>-----------------</Text>
         </>
       )
@@ -246,14 +267,15 @@ export default class SettingsScreen extends Component<Props, State> {
             setter={storage.settings().clickableLinks().save}/>
           <ClickOption optionText="Fetch saved posts from Reddit?"
             action={() => this.fetchAndPopulateSavedItems()}/>
+          <BooleanOption optionText="Show debug info?"
+            getter={storage.settings().debugInfo().get}
+            setter={storage.settings().debugInfo().save}
+            onStateChange={debug => this.setState({debug})}/>
 
           <Text style={styles.subtitle}>Auth</Text>
-          <ClickOption optionText="Revalidate auth tokens?"
-            action={() => this.revalidateAuth()} />
           <ClickOption optionText="Log out?"
             action={() => this.logOut()}/>
-          <ClickOption optionText="Clear ALL data?"
-            action={() => this.clearAllData()}/>
+          {debugAuthOptions}
         </>
       )
     }

@@ -23,6 +23,7 @@ export const storage = {
       username: () => stringStorageTemplate(prefix(SETTINGS_PREFIX, "USERNAME")),
       savePostImages: () => boolStorageTemplate(prefix(SETTINGS_PREFIX, "SAVE_POST_IMAGES")),
       clickableLinks: () => boolStorageTemplate(prefix(SETTINGS_PREFIX, "CLICKABLE_LINKS")),
+      debugInfo: () => boolStorageTemplate(prefix(SETTINGS_PREFIX, "DEBUG_INFO")),
     }
   },
 
