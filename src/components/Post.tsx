@@ -112,18 +112,20 @@ export class Post extends React.Component<Props, State> {
           }}>
             <Text style={styles.postTitle}
               adjustsFontSizeToFit={true}
-              numberOfLines={3}
+              numberOfLines={4}
               onPress={clickFunc(this.props.data.permalink)}>{this.props.data.title}</Text>
             <View style={styles.container}>
-              <Text style={styles.regularText}
+              <Text
+                style={[styles.containerElement, styles.regularText, styles.descLinks, {color: Colors.darkGreen}]}
                 onPress={clickFunc("/u/" + this.props.data.author)}>u/{this.props.data.author}</Text>
 
-              <Text style={styles.regularText}
+              <Text
+                style={[styles.containerElement, styles.regularText, styles.descLinks, {color: Colors.darkYellow}]}
                 onPress={clickFunc("/r/" + this.props.data.subreddit)}>r/{this.props.data.subreddit}</Text>
 
-              <View style={styles.container}>
-                <Feather style={styles.regularText} name='clock' size={35} color={Colors.white} />
-                <Text style={styles.regularText}> {readableTimeDiff} ago</Text>
+              <View style={[styles.containerElement, {flexDirection: 'row', justifyContent: 'center'}, styles.descLinks]}>
+                <Feather style={[styles.regularText, { color: Colors.darkWhite }]} name='clock' size={30}/>
+                <Text style={[styles.regularText, { color: Colors.darkWhite }]}> {readableTimeDiff} ago</Text>
               </View>
             </View>
           </View>
@@ -158,12 +160,23 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     justifyContent: 'space-around',
+    flexWrap: 'wrap',
+  },
+
+  containerElement: {
+    paddingLeft: 5,
+    paddingRight: 5,
+  },
+
+  descLinks: {
+    // flex: 1,
+    // flexShrink: 0,
   },
 
   regularText: {
     fontSize: 20,
     lineHeight: 30,
-    fontWeight: '500',
+    fontWeight: '400',
 
     marginBottom: 0,
 
