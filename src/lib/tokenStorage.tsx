@@ -1,5 +1,4 @@
 import AsyncStorage from '@react-native-community/async-storage';
-import api from './api';
 import { getReadableTimeUntil } from './utils';
 const TOKEN_KEY = 'SERIALIZED-TOKENS';
 
@@ -9,19 +8,27 @@ export interface TokenHolder {
   RefreshDate: Date,
 }
 
+export interface RefreshTokenInfo {
+  accessToken: string,
+  expires_in: string,
+}
+
+export interface apiRefreshFunc{
+  (refreshToken: string): Promise<RefreshTokenInfo>
+}
+
 var Tokens = {
   AuthToken: '',
   RefreshToken: '',
   RefreshDate: new Date(),
 } as TokenHolder;
 
-export const SaveTokens = async (authToken: string, refreshToken: string, refreshTime: number) => {
+export const SaveTokens = async (authToken: string, refreshToken: string, secsUntilExp: number) => {
   Tokens.AuthToken = authToken;
   Tokens.RefreshToken = refreshToken;
 
-  var d = new Date()
-  d.setSeconds(d.getSeconds() + refreshTime - 5); // Decrement just in case of latency when recieving message
-  Tokens.RefreshDate =  d;
+  const expDate = new Date(Date.now() + (secsUntilExp * 1000) - 5000); // Decrement just in case of latency when recieving message
+  Tokens.RefreshDate = expDate;
 
   return await AsyncStorage.setItem(TOKEN_KEY, JSON.stringify(Tokens))
 }
@@ -44,24 +51,24 @@ export const TokensExist = async function() {
   };
 }
 
-export const RefreshTokens = async function() {
+export const RefreshTokens = async function(apiRefresh: apiRefreshFunc) {
   const tokens = await getTokens();
-  const refreshData = await api.refresh(tokens.RefreshToken);
+  const refreshData = await apiRefresh(tokens.RefreshToken);
 
-  await SaveTokens(refreshData.accessToken, tokens.RefreshToken, Number(refreshData.expires_in) * 1000) // Reddit stores this in S not MS
+  await SaveTokens(refreshData.accessToken, tokens.RefreshToken, Number(refreshData.expires_in)) // Reddit stores this in S not MS
   return getTokens();
 }
 
-export const GetTokens = async function() {
+export const GetTokens = async function(apiRefresh: apiRefreshFunc) {
   const tokens = await getTokens();
+  console.log(`Pre-refresh: Time before token expires: ${getReadableTimeUntil(tokens.RefreshDate.getTime())}`);
 
   const now = new Date();
   if (now > tokens.RefreshDate) {
     console.log("AUTOMATICALLY REFRESHING THE TOKENS")
-    RefreshTokens();
+    return await RefreshTokens(apiRefresh);
   }
 
-  console.log(`Time before token expires: ${getReadableTimeUntil(tokens.RefreshDate.getTime())}`);
   return tokens;
 }
 

@@ -6,6 +6,7 @@ interface Props {
   postData: PostData[],
 }
 
+// TODO: try this as a KV pair, then use it as a global object incorporated into storage, if it improves speed.
 interface State {
   cache: (ImageData|undefined)[]
 }

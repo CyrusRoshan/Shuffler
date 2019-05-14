@@ -51,7 +51,8 @@ export const api = {
     throw(`error when authenticating: ${JSON.stringify(res)}`)
   },
 
-  forceRefresh: RefreshTokens,
+  forceRefresh: function(){ RefreshTokens(this.refresh) },
+
   refresh: async function(refreshToken: string) {
     const res = await tokenRequest.refresh(ACCESS_TOKEN_URL, CLIENT_ID, refreshToken);
     if (res.json.access_token && res.json.expires_in) {
@@ -64,18 +65,18 @@ export const api = {
   },
 
   currentUser: async function() {
-    const tokens = await GetTokens();
+    const tokens = await GetTokens(this.refresh);
     return await authedRequest.get(BASE_URL + '/api/v1/me', tokens.AuthToken);
   },
 
   logout: DeleteTokens,
 
   user: function(username: string) {
-    const userFetch = async function(pathSuffix: string, params: QueryParams) {
+    const userFetch = async (pathSuffix: string, params: QueryParams) => {
       const url = BASE_URL + `/user/${username}/${pathSuffix}`
       const urlWithQuery = url + convertToQueryParamString(params);
 
-      const tokens = await GetTokens();
+      const tokens = await GetTokens(this.refresh);
       return authedRequest.get(urlWithQuery, tokens.AuthToken);
     }
 
@@ -104,6 +105,11 @@ export const api = {
     }
 
     return {
+      // TODO structure e.g.
+      // saved().get()
+      // saved().delete()
+      // TODO: split this into a new repo
+      // TODO: build out that repo (estimated: 2-3hrs total)
       comments: (params: QueryParams) => userFetch('comments', params),
       downvoted: (params: QueryParams) => userFetch('downvoted', params),
       gilded: (params: QueryParams) => userFetch('gilded', params),

@@ -11,7 +11,8 @@ import {api, QueryParams} from '../lib/api';
 import { storage } from '../lib/storage';
 import { sleep, updater, getReadableTimeUntil } from '../lib/utils';
 import { BooleanOption, ClickOption } from '../components/Option';
-import { GetTokens, TokenHolder, DeleteTokens } from '../lib/tokenStorage';
+import { GetTokens, TokenHolder, DeleteTokens, RefreshTokens } from '../lib/tokenStorage';
+import { ScrollView } from 'react-native-gesture-handler';
 
 export interface Props {
   navigation: NavigationScreenProp<any>
@@ -99,7 +100,7 @@ export default class SettingsScreen extends Component<Props, State> {
       storage.settings().username().save(username);
     }
 
-    const tokens = await GetTokens()
+    const tokens = await GetTokens(api.refresh)
     this.setState({
       tokens,
       loggedIn: true,
@@ -127,6 +128,7 @@ export default class SettingsScreen extends Component<Props, State> {
   }
 
   async revalidateAuth() {
+    await RefreshTokens(api.refresh);
     try {
       await api.currentUser();
     } catch (e) {
@@ -263,6 +265,10 @@ export default class SettingsScreen extends Component<Props, State> {
       loggedInOptions = (
         <>
           <View style={{marginTop: 20}}></View>
+          <Text style={styles.subtitle}>Actions</Text>
+          <ClickOption optionText="Cache saved posts from Reddit?"
+            action={() => this.fetchAndPopulateSavedItems()} />
+
           <Text style={styles.subtitle}>Options</Text>
           <BooleanOption optionText="Lazy save posts for offline viewing?"
             getter={storage.settings().savePostImages().get}
@@ -270,8 +276,6 @@ export default class SettingsScreen extends Component<Props, State> {
           <BooleanOption optionText="Should clicking posts navigate to reddit.com?"
             getter={storage.settings().clickableLinks().get}
             setter={storage.settings().clickableLinks().save}/>
-          <ClickOption optionText="Fetch saved posts from Reddit?"
-            action={() => this.fetchAndPopulateSavedItems()}/>
           <BooleanOption optionText="Show debug info?"
             getter={storage.settings().debugInfo().get}
             setter={storage.settings().debugInfo().save}
@@ -301,10 +305,12 @@ export default class SettingsScreen extends Component<Props, State> {
       <View style={styles.container}>
         <View style={styles.postHolder}>
           <Text style={styles.title}>Settings</Text>
-          {loginButton}
-          {userInfo}
-          {populatingText}
-          {loggedInOptions}
+          <ScrollView alwaysBounceVertical={false}>
+            {loginButton}
+            {userInfo}
+            {populatingText}
+            {loggedInOptions}
+          </ScrollView>
         </View>
       </View>
     );
