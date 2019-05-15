@@ -30,17 +30,21 @@ export interface PostData {
   created_utc: number,
 }
 
-export const parsePost = (postData: any) => {
-  return {
-    url: postData.data.url,
-    author: postData.data.author,
-    title: postData.data.title,
-    subreddit: postData.data.subreddit,
-    id: postData.data.id,
-    prefixed_id: postData.data.name,
-    permalink: postData.data.permalink,
-    created_utc: postData.data.created_utc,
-  } as PostData;
+export const parsePost = (data: any): PostData|undefined => {
+  if (
+    !data.url ||
+    !data.author ||
+    !data.title ||
+    !data.subreddit ||
+    !data.id ||
+    !data.name ||
+    !data.permalink ||
+    !data.created_utc
+  ) {
+    return undefined;
+  }
+  data.prefixed_id = data.name;
+  return data as PostData;
 }
 
 interface Props {
@@ -54,7 +58,7 @@ interface Props {
 }
 
 interface State {
-  deleted?: boolean,
+  hidden?: boolean,
   rawImg?: string,
   imageHeight?: number,
 
@@ -83,6 +87,12 @@ export class Post extends React.Component<Props, State> {
   // Get base64 imagedata and image size for render
   async getImageData() {
     const imageData = await this.props.cache.get(this.props.index);
+    if (!imageData) {
+      this.setState({
+        hidden: true
+      })
+      return;
+    }
 
     // Size image
     const screenWidth = Dimensions.get('window').width;
@@ -108,11 +118,18 @@ export class Post extends React.Component<Props, State> {
       toValue: 1,
       duration: 500,
     }).start(() => {
-      // TODO: delete from reddit API
+      // Delete from reddit api
       api.call().unsave(this.props.data.prefixed_id);
+
+      // Delete from disk
       storage.imageData().delete(this.props.data.prefixed_id);
       storage.postData().delete(this.props.data.prefixed_id);
       storage.postIDList().deleteFrom(this.props.data.prefixed_id);
+
+      // Stop rendering
+      this.setState({
+        hidden: true,
+      })
     });
   }
 
@@ -129,7 +146,7 @@ export class Post extends React.Component<Props, State> {
   readableTimeDiff = getReadableTimeSince(this.props.data.created_utc * 1000); // This date is in s not ms
 
   render() {
-    if (this.state.deleted) {
+    if (this.state.hidden) {
       return <></>;
     }
     if (!this.state.rawImg) {

@@ -73,6 +73,51 @@ export const storage = {
   },
 
   //
+  // OFFLINE_POST_ID_LIST = []string (offline post IDs)
+  //
+  offlinePostIDList: () => {
+    const PREFIX = 'OFFLINE_POST_ID_LIST';
+
+    return {
+      get: async function() {
+        const postIdText = await AsyncStorage.getItem(PREFIX);
+        if (!postIdText) {
+          return null;
+        }
+
+        return JSON.parse(postIdText) as string[];
+      },
+
+      add: async function(postIDs: string[]) {
+        if (postIDs.length === 0) {
+          throw(ERR_NULL_VALUE)
+        }
+
+        const savedPostIDs = await this.get()
+        if (savedPostIDs) {
+          postIDs = [...new Set([...savedPostIDs, ...postIDs])];
+        }
+
+        return await this.save(postIDs);
+      },
+
+      save: async function(postIDs: string[]) {
+        return await AsyncStorage.setItem(PREFIX, JSON.stringify(postIDs));
+      },
+
+      deleteFrom: async function (postID: string) {
+        const savedPostIDs = await this.get()
+        if (savedPostIDs) {
+          const filteredPostIDs = savedPostIDs.filter((id) => id !== postID);
+          this.save(filteredPostIDs);
+          return true;
+        }
+        return false;
+      }
+    }
+  },
+
+  //
   // POST_DATA = string (post ID) => object (postData)
   //
   postData: () => {

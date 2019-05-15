@@ -13,7 +13,8 @@ import { shuffle } from '../lib/utils';
 import { PostCache } from '../components/PostCache';
 
 export interface Props {
-	navigation: NavigationScreenProp<any>
+  navigation: NavigationScreenProp<any>
+  offline?: boolean
 };
 
 interface PostImageData {
@@ -43,7 +44,14 @@ export default class PostsScreen extends Component<Props, State> {
 
   async getPostsData() {
     // Get all posts
-    const postIDs = await storage.postIDList().get()
+    var postIDs;
+    if (this.props.offline) {
+      postIDs = await storage.offlinePostIDList().get()
+    } else {
+      postIDs = await storage.postIDList().get()
+    }
+
+    // Exit if no posts saved
     if (!postIDs || !postIDs.length) {
       this.setState({isEmpty: true});
       return;
@@ -64,7 +72,7 @@ export default class PostsScreen extends Component<Props, State> {
     }
 
     // Create post cache
-    const postCache = new PostCache({postData});
+    const postCache = new PostCache({postData, offline: this.props.offline});
 
     // Get settings and pass on
     const savePostImages = await storage.settings().savePostImages().get();
@@ -90,8 +98,12 @@ export default class PostsScreen extends Component<Props, State> {
     }
 
     if (this.state.isEmpty) {
+      var emptyMessage = "you have no cached posts.\n\ngo to the settings page!";
+      if (this.props.offline) {
+        emptyMessage = `you have no offline posts.\n\nposts will be cached for offline use as you view them normally in "all saved posts"`;
+      }
       body = <View style={styles.infoContainer}>
-        <Text style={styles.infoMessage}>You have no cached posts. Go to the settings page!</Text>
+        <Text style={styles.infoMessage}>{emptyMessage}</Text>
       </View>
     }
 
@@ -133,8 +145,8 @@ const styles = StyleSheet.create({
 
 	infoMessage: {
 		fontSize: 30,
-		lineHeight: 30,
-		fontWeight: '700',
+		lineHeight: 35,
+		fontWeight: '500',
 
 		textAlign: 'center',
 		alignSelf: 'stretch',
@@ -143,8 +155,8 @@ const styles = StyleSheet.create({
 
   infoContainer: {
     flex: 1,
-    padding: 30,
-    paddingBottom: 70,
+    padding: 20,
+    paddingBottom: 80,
     flexDirection: 'column',
     justifyContent: 'center',
   },

@@ -15,14 +15,14 @@ const NavigationStack = createStackNavigator(
     },
 
     AllSaved: {
-      screen: PostsScreen,
+      screen: (nav: any) => <PostsScreen navigation={nav}></PostsScreen>,
       navigationOptions: {
         header: null,
       },
     },
 
     Offline: {
-      screen: PostsScreen, // TODO: make this instance only pull prev-saved images
+      screen: (nav: any) => <PostsScreen navigation={nav} offline={true}></PostsScreen>,
       navigationOptions: {
         header: null,
       },

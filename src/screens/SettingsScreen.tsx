@@ -6,7 +6,7 @@ import { ifIphoneX } from 'react-native-iphone-x-helper';
 import { NavigationScreenProp } from 'react-navigation';
 
 import Colors from '../constants/Colors';
-import { parsePost} from '../components/Post';
+import { parsePost, PostData} from '../components/Post';
 import {api, ListingParams, LoginURL} from '../lib/api';
 import { storage } from '../lib/storage';
 import { updater, getReadableTimeUntil } from '../lib/utils';
@@ -180,9 +180,9 @@ export default class SettingsScreen extends Component<Props, State> {
     }
 
     // Get saved image post data. We want to have the post data so we can save this to memory
-    const savedImagePostData = savedImages.map((post) => {
-      return parsePost(post);
-    })
+    const savedImagePostData = savedImages.map((postResult) => {
+      return parsePost(postResult.data);
+    }).filter((postdata) => postdata !== undefined) as PostData[]; // Doesn't recognize this filter
 
     // This is the number of images we're actually going to save.
     const totalToFetch = savedImagePostData.length;
@@ -197,7 +197,6 @@ export default class SettingsScreen extends Component<Props, State> {
       updateFunc(c);
     })
     const awaiters = Array(totalToFetch + 1) as Promise<any>[];
-
 
     // Save list of all post IDs
     const allPostIDs = savedImagePostData.map((postData) => {
