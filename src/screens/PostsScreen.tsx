@@ -60,15 +60,23 @@ export default class PostsScreen extends Component<Props, State> {
     // Shuffle posts
     // shuffle(postIDs);
 
+    // Whether to filter out video posts or not
+    var videoSupport = await storage.settings().experimentalVideoSupport().get()
+    if (this.props.offline) {
+      videoSupport = false; // No support for offline videos yet (see https://github.com/react-native-community/react-native-video/issues/266)
+    }
+
     // Get post data
-    const postData = new Array(postIDs.length) as PostData[];
+    var postData: PostData[] = [];
     for (var i = 0; i < postIDs.length; i++) {
       const data = await storage.postData().get(postIDs[i]);
       if (!data) {
-        throw (`data is not valid for post with id ${postIDs[i]}`)
+        continue;
       }
-
-      postData[i] = data;
+      if (data.type === 'video' && !videoSupport) {
+        continue;
+      }
+      postData.push(data);
     }
 
     // Create post cache

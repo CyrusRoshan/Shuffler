@@ -12,6 +12,7 @@ import {
 
 import Swipeout from 'react-native-swipeout';
 import Feather from 'react-native-vector-icons/Feather';
+import Video from 'react-native-video';
 
 import Colors from '../constants/Colors';
 import { getReadableTimeSince } from '../lib/utils';
@@ -19,6 +20,7 @@ import { PostCache } from './PostCache';
 import { storage } from '../lib/storage';
 import api from '../lib/api';
 
+export type PostType = 'image' | 'video'
 export interface PostData {
   url: string,
   author: string,
@@ -28,9 +30,11 @@ export interface PostData {
   prefixed_id: string,
   permalink: string,
   created_utc: number,
+  type: PostType,
 }
 
-export const parsePost = (data: any): PostData|undefined => {
+export const ParsePost = (data: any): PostData|undefined => {
+  // Verify bare minimum data
   if (
     !data.url ||
     !data.author ||
@@ -44,6 +48,46 @@ export const parsePost = (data: any): PostData|undefined => {
     return undefined;
   }
   data.prefixed_id = data.name;
+
+  // Assign type
+  var type: PostType|undefined;
+  if (data.post_hint === 'image') {
+    type = 'image';
+  }
+  else if (
+    String(data.url).endsWith(".jpg") ||
+    String(data.url).endsWith(".png") ||
+    String(data.url).endsWith(".jpeg")
+  ) {
+    type = 'image';
+  }
+  else if (
+    data.secure_media &&
+    data.secure_media.reddit_video &&
+    data.secure_media.reddit_video.fallback_url
+  ) {
+    data.url = data.secure_media.reddit_video.fallback_url;
+    type = 'video';
+  }
+  else if (data.post_hint === 'hosted:video') {
+    type = 'video';
+  }
+  else if (
+    data.preview &&
+    data.preview.reddit_video_preview &&
+    data.preview.reddit_video_preview.fallback_url
+  ) {
+    data.url = data.preview.reddit_video_preview.fallback_url;
+    type = 'video';
+  }
+
+  // Check type was assigned
+  if (!type) {
+    console.log(data);
+    return undefined;
+  }
+  data.type = type;
+
   return data as PostData;
 }
 
@@ -77,7 +121,9 @@ export class Post extends React.Component<Props, State> {
 
   componentDidMount() {
     this._isMounted = true;
-    this.getImageData();
+    if (this.props.data.type === 'image') {
+      this.getImageData();
+    }
   }
 
   componentWillUnmount() {
@@ -149,7 +195,7 @@ export class Post extends React.Component<Props, State> {
     if (this.state.hidden) {
       return <></>;
     }
-    if (!this.state.rawImg) {
+    if (this.props.data.type === 'image' && !this.state.rawImg) {
       return <View style={styles.imagePlaceholder}></View>;
     }
 
@@ -175,16 +221,35 @@ export class Post extends React.Component<Props, State> {
         </View>
       </View>
     );
-    const postImage = (
-      <View style={{ width: '100%', backgroundColor: Colors.lightBlack }}>
-        <Image style={{
-            flex: 1,
-            width: '100%',
-            height: this.state.imageHeight || 200,
-            resizeMode: 'cover',
-          }} source={{ uri: this.state.rawImg }} />
-      </View>
-    );
+
+    var postContent;
+    if (this.props.data.type === 'image') {
+      postContent = (
+        <View style={{ width: '100%', backgroundColor: Colors.lightBlack }}>
+          <Image style={{
+              flex: 1,
+              width: '100%',
+              height: this.state.imageHeight || 200,
+              resizeMode: 'cover',
+            }} source={{ uri: this.state.rawImg }} />
+        </View>
+      );
+    } else if (this.props.data.type === 'video') {
+      postContent = (
+        <View style={{ width: '100%', backgroundColor: Colors.lightBlack }}>
+          <Video source={{ uri: this.props.data.url }}   // Can be a URL or a local file.
+            controls={false}
+            style={{
+              flex: 1,
+              width: '100%',
+              aspectRatio: 1,
+            }}
+            repeat={true}
+            resizeMode={'cover'}
+          />
+        </View>
+      );
+    }
 
     return (
       <Animated.View style={{
@@ -208,7 +273,7 @@ export class Post extends React.Component<Props, State> {
             {title}
             {postInfo}
           </View>
-          {postImage}
+          {postContent}
         </Swipeout>
       </Animated.View>
     )

@@ -24,6 +24,7 @@ export const storage = {
       savePostImages: () => boolStorageTemplate(prefix(SETTINGS_PREFIX, "SAVE_POST_IMAGES")),
       clickableLinks: () => boolStorageTemplate(prefix(SETTINGS_PREFIX, "CLICKABLE_LINKS")),
       debugInfo: () => boolStorageTemplate(prefix(SETTINGS_PREFIX, "DEBUG_INFO")),
+      experimentalVideoSupport: () => boolStorageTemplate(prefix(SETTINGS_PREFIX, "VIDEO_SUPPORT")),
     }
   },
 
@@ -68,6 +69,10 @@ export const storage = {
           return true;
         }
         return false;
+      },
+
+      deleteALL: async function () {
+        return await AsyncStorage.removeItem(PREFIX);
       }
     }
   },
@@ -113,6 +118,10 @@ export const storage = {
           return true;
         }
         return false;
+      },
+
+      deleteALL: async function () {
+        return await AsyncStorage.removeItem(PREFIX);
       }
     }
   },

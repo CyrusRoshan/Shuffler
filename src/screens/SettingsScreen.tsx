@@ -6,7 +6,7 @@ import { ifIphoneX } from 'react-native-iphone-x-helper';
 import { NavigationScreenProp } from 'react-navigation';
 
 import Colors from '../constants/Colors';
-import { parsePost, PostData} from '../components/Post';
+import { ParsePost, PostData} from '../components/Post';
 import {api, ListingParams, LoginURL} from '../lib/api';
 import { storage } from '../lib/storage';
 import { updater, getReadableTimeUntil } from '../lib/utils';
@@ -26,6 +26,7 @@ interface State {
   name?: string,
 
   savedItemCount?: number,
+  invalidItems?: number,
 
   populating: boolean,
   totalToFetch: number,
@@ -127,6 +128,21 @@ export default class SettingsScreen extends Component<Props, State> {
     })
   }
 
+  async clearPostData() {
+    const postIDs = await storage.postIDList().get()
+    if (postIDs) {
+      postIDs.forEach(postID => {
+        storage.postData().delete(postID);
+        storage.imageData().delete(postID)
+      })
+    }
+    storage.offlinePostIDList().deleteALL()
+    storage.postIDList().deleteALL()
+    this.setState({
+      savedItemCount: 0,
+    })
+  }
+
   async revalidateAuth() {
     await RefreshTokens(api.auth().refresh);
     await api.auth().forceRefresh();
@@ -161,31 +177,35 @@ export default class SettingsScreen extends Component<Props, State> {
       });
     }
 
+    if (!this.state.name) {
+      return;
+    }
+
     // Updater to handle fetch progress
     const fetchPhasePct = 70;
     const fetchPhaseUpdater = updater(0, fetchPhasePct, 100, updateFunc);
-    const savedItems = await api.call().user(this.state.name || '').allSaved(props, fetchPhaseUpdater)
+    const savedItems = await api.call().user(this.state.name).allSaved(props, fetchPhaseUpdater)
 
-    // Filter out non-image posts
-    const savedImages = savedItems.filter((item) => {
-      return item.data.post_hint === "image";
-    })
+    // Get saved image post data. We want to have the post data so we can save this to memory
+    const savedPostData = savedItems.map((itemResult) => {
+      return ParsePost(itemResult.data);
+    }).filter((postdata) => postdata !== undefined) as PostData[];
 
     // Exit if no images
-    if (!savedImages.length) {
+    if (!savedPostData.length) {
       this.setState({
         populating: false,
       });
       return
     }
 
-    // Get saved image post data. We want to have the post data so we can save this to memory
-    const savedImagePostData = savedImages.map((postResult) => {
-      return parsePost(postResult.data);
-    }).filter((postdata) => postdata !== undefined) as PostData[]; // Doesn't recognize this filter
+    // Log number of invalid items (items we couldn't conver to posts)
+    this.setState({
+      invalidItems: savedItems.length - savedPostData.length
+    })
 
     // This is the number of images we're actually going to save.
-    const totalToFetch = savedImagePostData.length;
+    const totalToFetch = savedPostData.length;
     this.setState({
       totalToFetch: totalToFetch,
     })
@@ -199,13 +219,13 @@ export default class SettingsScreen extends Component<Props, State> {
     const awaiters = Array(totalToFetch + 1) as Promise<any>[];
 
     // Save list of all post IDs
-    const allPostIDs = savedImagePostData.map((postData) => {
+    const allPostIDs = savedPostData.map((postData) => {
       return postData.prefixed_id;
     })
     awaiters[0] = storage.postIDList().add(allPostIDs).then(savePhaseUpdater);
 
     // And save the KV map of post ID to post data
-    savedImagePostData.forEach((postData, i) => {
+    savedPostData.forEach((postData, i) => {
       awaiters[i + 1] = storage.postData().save(postData.prefixed_id, postData).then(savePhaseUpdater);
     })
 
@@ -252,13 +272,29 @@ export default class SettingsScreen extends Component<Props, State> {
               'This will clear posts, settings, everything!',
               this.clearAllData.bind(this)
             )}/>
+          <ClickOption optionText="Clear cached posts?"
+            action={() => alertUser(
+              'Are you sure?',
+              'This will clear offline posts!',
+              this.clearPostData.bind(this)
+            )}/>
         </>)
 
+        var debugTokenInfo;
         if (!this.state.tokens) {
-          debugInfo = <Text style={styles.regularText}>Error! No tokens found!</Text>
+          debugTokenInfo = <Text style={styles.regularText}>Error! No tokens found!</Text>
         } else {
           const expirationTime = this.state.tokens.RefreshDate.getTime();
-          debugInfo = <Text style={styles.regularText}>Token expires in: {getReadableTimeUntil(expirationTime)}</Text>
+          debugTokenInfo = <Text style={styles.regularText}>Token expires in: {getReadableTimeUntil(expirationTime)}</Text>
+        }
+
+        if (this.state.invalidItems) {
+          debugInfo = <>
+            <Text style={styles.regularText}>Invalid items: {this.state.invalidItems}</Text>
+            {debugTokenInfo}
+          </>
+        } else {
+          debugInfo = debugTokenInfo;
         }
       }
 
@@ -288,6 +324,10 @@ export default class SettingsScreen extends Component<Props, State> {
           <BooleanOption optionText="Show debug info?"
             getter={storage.settings().debugInfo().get}
             setter={storage.settings().debugInfo().save}
+            onStateChange={debug => this.setState({debug})}/>
+          <BooleanOption optionText="Enable experimental video support?"
+            getter={storage.settings().experimentalVideoSupport().get}
+            setter={storage.settings().experimentalVideoSupport().save}
             onStateChange={debug => this.setState({debug})}/>
 
           <Text style={styles.subtitle}>Auth</Text>

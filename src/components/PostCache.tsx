@@ -62,7 +62,18 @@ export class PostCache {
   }
 
   async getFromURL(url: string): Promise<ImageData|undefined> {
-    // Read image as data url
+    const fetchedImageData = await this.imageBlob(url);
+    const imageSize = await this.imageSize(fetchedImageData);
+
+    return {
+      width: imageSize.width,
+      height: imageSize.height,
+      data: fetchedImageData,
+    };
+  }
+
+  // Read image as data url
+  async imageBlob(url: string) {
     const imageBlob = await fetch(url).then(i => i.blob());
     const fetchedImageData = await new Promise<string>((resolve, reject) => {
       const reader = new FileReader()
@@ -76,15 +87,7 @@ export class PostCache {
       reader.onerror = reject
       reader.readAsDataURL(imageBlob)
     })
-
-    // Get image size
-    const imageSize = await this.imageSize(fetchedImageData);
-
-    return {
-      width: imageSize.width,
-      height: imageSize.height,
-      data: fetchedImageData,
-    };
+    return fetchedImageData;
   }
 
   async imageSize(imageData: string): Promise<{width: number, height: number}> {
