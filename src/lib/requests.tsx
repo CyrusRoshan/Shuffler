@@ -1,80 +1,58 @@
 import { throwErrOrParseJSON, keyPair, convertBody } from "./utils";
 const base64 = require('base-64');
 
-export const USER_AGENT = 'react-native:shuffler:v0.0.1 (by /u/cyrusroshan)';
+const USER_AGENT = 'react-native:shuffler:v0.0.1 (by /u/cyrusroshan)';
+export type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+export type Headers = { [s: string]: string; }
 
-export const tokenRequest = {
+export const TokenRequest = {
   initialAuth: async (url: string, clientID: string, code: string) => {
-    const body = `grant_type=authorization_code&code=${code}&redirect_uri=shuffler%3A%2F%2Fsettings`
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'User-Agent': USER_AGENT,
-        'Authorization': `Basic ${base64.encode(clientID + ':')}`,
-      },
-      body: body,
-    }).then(throwErrOrParseJSON)
-    return res;
+    const body = `grant_type=authorization_code&code=${code}&redirect_uri=shuffler%3A%2F%2Fsettings`;
+    return await tokenRequest(url, clientID, body);
   },
 
   refresh: async (url: string, clientID: string, refreshToken: string) => {
-    const body = `grant_type=refresh_token&refresh_token=${refreshToken}`
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'User-Agent': USER_AGENT,
-        'Authorization': `Basic ${base64.encode(clientID + ':')}`,
-      },
-      body: body,
-    }).then(throwErrOrParseJSON)
-    return res;
+    const body = `grant_type=refresh_token&refresh_token=${refreshToken}`;
+    return await tokenRequest(url, clientID, body);
   }
 }
 
-export const unauthedRequest = {
-  get: (url: string) => fetch(url, {
-    method: 'GET',
-    headers: {
-      Accept: 'application/json',
-      'User-Agent': USER_AGENT,
-    },
-  }).then(throwErrOrParseJSON),
-
-  post: (url: string, body: keyPair) => {
-    return fetch(url, {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'User-Agent': USER_AGENT,
-      },
-      body: convertBody(body),
-    }).then(throwErrOrParseJSON)
-  },
+export const UnauthedRequest = (method: Method, url: string, body?: keyPair) => {
+  return request(method, url, undefined, body);
+}
+export const AuthedRequest = (method: Method, url: string, auth: string, body?: keyPair) => {
+  return request(method, url, `bearer ${auth}`, body);
 }
 
-export const authedRequest = {
-  get: (url: string, auth: string) => fetch(url, {
-    method: 'GET',
-    headers: {
-      Accept: 'application/json',
-      'User-Agent': USER_AGENT,
-      Authorization: `bearer ${auth}`,
-    },
-  }).then(throwErrOrParseJSON),
+const request = async (method: Method, url: string, auth?: string, body?: keyPair) => {
+  var headers = {
+    Accept: 'application/json',
+    'User-Agent': USER_AGENT,
+  } as Headers;
 
-  post: (url: string, auth: string, body: keyPair) => fetch(url, {
+  if (body) {
+    headers['Content-Type'] = 'application/json';
+  }
+  if (auth) {
+    headers['Authorization'] = auth;
+  }
+
+  return fetch(url, {
+    method: method,
+    headers,
+    body: body ? convertBody(body) : undefined,
+  }).then(throwErrOrParseJSON);
+}
+
+const tokenRequest = async (url: string, clientID: string, body: string) => {
+  return await fetch(url, {
     method: 'POST',
     headers: {
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'Content-Type': 'application/x-www-form-urlencoded',
       'User-Agent': USER_AGENT,
-      Authorization: `bearer ${auth}`,
+      'Authorization': `Basic ${base64.encode(clientID + ':')}`,
     },
-    body: convertBody(body),
-  }).then(throwErrOrParseJSON),
+    body: body,
+  }).then(throwErrOrParseJSON)
 }

@@ -6,10 +6,10 @@ import { ifIphoneX } from 'react-native-iphone-x-helper';
 import { NavigationScreenProp } from 'react-navigation';
 
 import Colors from '../constants/Colors';
-import {Post, parsePost} from '../components/Post';
-import {api, QueryParams} from '../lib/api';
+import { parsePost} from '../components/Post';
+import {api, ListingParams, LoginURL} from '../lib/api';
 import { storage } from '../lib/storage';
-import { sleep, updater, getReadableTimeUntil } from '../lib/utils';
+import { updater, getReadableTimeUntil } from '../lib/utils';
 import { BooleanOption, ClickOption } from '../components/Option';
 import { GetTokens, TokenHolder, DeleteTokens, RefreshTokens } from '../lib/tokenStorage';
 import { ScrollView } from 'react-native-gesture-handler';
@@ -54,7 +54,7 @@ export default class SettingsScreen extends Component<Props, State> {
 
   // Update render if authed locally
   async rerenderIfAuthed() {
-    const authed = await api.isAuthed();
+    const authed = await api.auth().isAuthed();
     if (authed) {
       this.getLogin();
     }
@@ -83,7 +83,7 @@ export default class SettingsScreen extends Component<Props, State> {
       const code = params.code;
       this.props.navigation.setParams({ code: null });
 
-      await api.login(code)
+      await api.auth().login(code)
       this.getLogin();
     }
   }
@@ -91,7 +91,7 @@ export default class SettingsScreen extends Component<Props, State> {
   async getLogin() {
     var username = await storage.settings().username().get()
     if (!username) {
-      const user  = await api.currentUser();
+      const user  = await api.call().currentUser();
 
       username = user.json.name;
       if (!username) {
@@ -100,7 +100,7 @@ export default class SettingsScreen extends Component<Props, State> {
       storage.settings().username().save(username);
     }
 
-    const tokens = await GetTokens(api.refresh)
+    const tokens = await GetTokens(api.auth().refresh)
     this.setState({
       tokens,
       loggedIn: true,
@@ -110,7 +110,7 @@ export default class SettingsScreen extends Component<Props, State> {
   }
 
   async logOut() {
-    await api.logout();
+    await api.auth().logout();
     this.setState({
       loggedIn: false,
       name: '',
@@ -128,9 +128,10 @@ export default class SettingsScreen extends Component<Props, State> {
   }
 
   async revalidateAuth() {
-    await RefreshTokens(api.refresh);
+    await RefreshTokens(api.auth().refresh);
+    await api.auth().forceRefresh();
     try {
-      await api.currentUser();
+      await api.call().currentUser();
     } catch (e) {
       this.setState({
         loggedIn: false,
@@ -145,7 +146,7 @@ export default class SettingsScreen extends Component<Props, State> {
       sort: 'new',
       t: 'all',
       type: 'links',
-    } as QueryParams;
+    } as ListingParams;
 
     this.setState({
       percentDone: 0,
@@ -163,12 +164,21 @@ export default class SettingsScreen extends Component<Props, State> {
     // Updater to handle fetch progress
     const fetchPhasePct = 70;
     const fetchPhaseUpdater = updater(0, fetchPhasePct, 100, updateFunc);
-    const savedItems = await api.user(this.state.name || '').allSaved(props, fetchPhaseUpdater)
+    const savedItems = await api.call().user(this.state.name || '').allSaved(props, fetchPhaseUpdater)
 
     // Filter out non-image posts
     const savedImages = savedItems.filter((item) => {
       return item.data.post_hint === "image";
     })
+
+    // Exit if no images
+    if (!savedImages.length) {
+      this.setState({
+        populating: false,
+      });
+      return
+    }
+
     // Get saved image post data. We want to have the post data so we can save this to memory
     const savedImagePostData = savedImages.map((post) => {
       return parsePost(post);
@@ -218,7 +228,7 @@ export default class SettingsScreen extends Component<Props, State> {
     if (!this.state.loggedIn) {
       loginButton = (
         <>
-          <Text style={styles.linkText} onPress={() => Linking.openURL(api.loginURL().url)}>
+          <Text style={styles.linkText} onPress={() => Linking.openURL(LoginURL().url)}>
             Log in!
           </Text>
         </>

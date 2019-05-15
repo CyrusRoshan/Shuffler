@@ -44,7 +44,7 @@ export default class PostsScreen extends Component<Props, State> {
   async getPostsData() {
     // Get all posts
     const postIDs = await storage.postIDList().get()
-    if (!postIDs) {
+    if (!postIDs || !postIDs.length) {
       this.setState({isEmpty: true});
       return;
     }
@@ -91,7 +91,7 @@ export default class PostsScreen extends Component<Props, State> {
 
     if (this.state.isEmpty) {
       body = <View style={styles.infoContainer}>
-        <Text style={styles.infoMessage}>You have no posts cached yet. Go to the settings page!</Text>
+        <Text style={styles.infoMessage}>You have no cached posts. Go to the settings page!</Text>
       </View>
     }
 

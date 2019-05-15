@@ -109,6 +109,7 @@ export class Post extends React.Component<Props, State> {
       duration: 500,
     }).start(() => {
       // TODO: delete from reddit API
+      api.call().unsave(this.props.data.prefixed_id);
       storage.imageData().delete(this.props.data.prefixed_id);
       storage.postData().delete(this.props.data.prefixed_id);
       storage.postIDList().deleteFrom(this.props.data.prefixed_id);

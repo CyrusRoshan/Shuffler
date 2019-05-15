@@ -33,8 +33,6 @@ export class PostCache {
       return cached;
     }
 
-    console.log("MISSED T1", index)
-
     // Check saved disk
     const postData = this.props.postData[index];
     const saved = await storage.imageData().get(postData.prefixed_id);
@@ -42,8 +40,6 @@ export class PostCache {
       this.state.cache[index] = saved;
       return saved;
     }
-
-    console.log("MISSED T2", index)
 
     // Check URL
     const fetched = await this.getFromURL(postData.url);
