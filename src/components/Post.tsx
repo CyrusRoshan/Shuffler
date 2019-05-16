@@ -23,6 +23,7 @@ import api from '../lib/api';
 export type PostType = 'image' | 'video'
 export interface PostData {
   url: string,
+  dataURL: string,
   author: string,
   title: string,
   subreddit: string,
@@ -52,6 +53,7 @@ export const ParsePost = (data: any): PostData|undefined => {
   // Assign type
   var type: PostType|undefined;
   if (data.post_hint === 'image') {
+    data.dataURL = data.url;
     type = 'image';
   }
   else if (
@@ -59,6 +61,7 @@ export const ParsePost = (data: any): PostData|undefined => {
     String(data.url).endsWith(".png") ||
     String(data.url).endsWith(".jpeg")
   ) {
+    data.dataURL = data.url;
     type = 'image';
   }
   else if (
@@ -66,10 +69,11 @@ export const ParsePost = (data: any): PostData|undefined => {
     data.secure_media.reddit_video &&
     data.secure_media.reddit_video.fallback_url
   ) {
-    data.url = data.secure_media.reddit_video.fallback_url;
+    data.dataURL = data.secure_media.reddit_video.fallback_url;
     type = 'video';
   }
   else if (data.post_hint === 'hosted:video') {
+    data.dataURL = data.url;
     type = 'video';
   }
   else if (
@@ -77,13 +81,12 @@ export const ParsePost = (data: any): PostData|undefined => {
     data.preview.reddit_video_preview &&
     data.preview.reddit_video_preview.fallback_url
   ) {
-    data.url = data.preview.reddit_video_preview.fallback_url;
+    data.dataURL = data.preview.reddit_video_preview.fallback_url;
     type = 'video';
   }
 
   // Check type was assigned
   if (!type) {
-    console.log(data);
     return undefined;
   }
   data.type = type;
@@ -159,34 +162,48 @@ export class Post extends React.Component<Props, State> {
     }
   }
 
-  deletePost() {
-    Animated.timing(this.state.animVal, {
-      toValue: 1,
-      duration: 500,
-    }).start(() => {
-      // Delete from reddit api
-      api.call().unsave(this.props.data.prefixed_id);
+  removePost(callback?: Function) {
+    return new Promise(resolve => {
+      Animated.timing(this.state.animVal, {
+        toValue: 1,
+        duration: 500,
+      }).start(async () => {
+        // Delete from disk
+        storage.imageData().delete(this.props.data.prefixed_id);
+        storage.postData().delete(this.props.data.prefixed_id);
+        storage.postIDList.deleteFrom(this.props.data.prefixed_id);
+        storage.offlinePostIDList.deleteFrom(this.props.data.prefixed_id);
 
-      // Delete from disk
-      storage.imageData().delete(this.props.data.prefixed_id);
-      storage.postData().delete(this.props.data.prefixed_id);
-      storage.postIDList().deleteFrom(this.props.data.prefixed_id);
-
-      // Stop rendering
-      this.setState({
-        hidden: true,
-      })
+        // Stop rendering
+        this.setState({
+          hidden: true,
+        }, resolve)
+      });
     });
+  }
+
+  async deletePost() {
+    await this.removePost();
+
+    // Also unsave from reddit
+    api.call().unsave(this.props.data.prefixed_id);
   }
 
   swipeoutButtons = [
     {
-      text: 'Delete',
+      text: "Uncache",
+      color: Colors.white,
+      backgroundColor: Colors.lightOrange,
+      underlayColor: Colors.darkOrange,
+      onPress: this.removePost.bind(this),
+    },
+    {
+      text: "Delete",
+      color: Colors.white,
       backgroundColor: Colors.lightRed,
       underlayColor: Colors.darkRed,
-      color: Colors.lightWhite,
       onPress: this.deletePost.bind(this),
-    }
+    },
   ]
 
   readableTimeDiff = getReadableTimeSince(this.props.data.created_utc * 1000); // This date is in s not ms
@@ -237,7 +254,7 @@ export class Post extends React.Component<Props, State> {
     } else if (this.props.data.type === 'video') {
       postContent = (
         <View style={{ width: '100%', backgroundColor: Colors.lightBlack }}>
-          <Video source={{ uri: this.props.data.url }}   // Can be a URL or a local file.
+          <Video source={{ uri: this.props.data.dataURL }}   // Can be a URL or a local file.
             controls={false}
             style={{
               flex: 1,

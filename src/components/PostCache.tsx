@@ -1,4 +1,4 @@
-import { Image, Dimensions } from 'react-native';
+import { Image } from 'react-native';
 import { PostData } from './Post';
 import { storage, ImageData } from '../lib/storage';
 
@@ -49,16 +49,16 @@ export class PostCache {
     }
 
     // Check URL
-    const fetched = await this.getFromURL(postData.url);
+    const fetched = await this.getFromURL(postData.dataURL);
     if (fetched) {
       storage.imageData().save(postData.prefixed_id, fetched);
-      storage.offlinePostIDList().add([postData.prefixed_id])
+      storage.offlinePostIDList.add([postData.prefixed_id])
       this.state.cache[index] = fetched;
       return fetched
     }
 
     // Error if reached here
-    throw(`Could not fetch ${postData.url}`)
+    throw(`Could not fetch ${postData.dataURL}`)
   }
 
   async getFromURL(url: string): Promise<ImageData|undefined> {

@@ -1,7 +1,96 @@
 import AsyncStorage from '@react-native-community/async-storage';
 import { PostData } from '../components/Post';
+import { Mutex } from 'async-mutex';
 
 const ERR_NULL_VALUE = 'error! null value save attempt!'
+
+class RWlock {
+  read = 0
+  write = false
+
+  currentPromise: Promise<any>|undefined = undefined
+  resolve: Function = () => {};
+
+  constructor() {}
+  async rLock() {
+    if (!this.write) {
+      this.read++;
+      this.currentPromise = new Promise((resolve) => this.resolve = resolve);
+      return;
+    }
+    await this.currentPromise;
+    this.read++;
+  }
+  async rUnlock() {
+    if (this.read === 1) {
+      this.resolve();
+    }
+    this.read--;
+  }
+  async wLock() {
+    if (this.read !== 0 && !this.write) {
+      this.write = true;
+      this.currentPromise = new Promise((resolve) => this.resolve = resolve);
+      return;
+    }
+    await this.currentPromise;
+    this.write = true;
+  }
+  async wUnlock() {
+    this.resolve();
+    this.write = false;
+  }
+}
+
+const stringArrayStorageTemplate = (key: string) => {
+  const mutex = new Mutex();
+  return {
+    get: async function () {
+      const savedArr = await AsyncStorage.getItem(key);
+
+      if (!savedArr) {
+        return null;
+      }
+      return JSON.parse(savedArr) as string[];
+    },
+
+    add: async function (arr: string[]) {
+      const release = await mutex.acquire();
+      if (arr.length === 0) {
+        throw (ERR_NULL_VALUE)
+      }
+
+      const savedArr = await this.get();
+      if (savedArr) {
+        arr = [...new Set([...savedArr, ...arr])];
+      }
+
+      await this.save(arr);
+      release();
+    },
+
+    save: async function (arr: string[]) {
+      await AsyncStorage.setItem(key, JSON.stringify(arr));
+    },
+
+    deleteFrom: async function (postID: string) {
+      const release = await mutex.acquire();
+      const savedArr = await this.get()
+      if (!savedArr) {
+        return;
+      }
+
+      const filteredArr = savedArr.filter((id) => id !== postID);
+      await this.save(filteredArr);
+      release();
+      return;
+    },
+
+    deleteALL: async function () {
+      await AsyncStorage.removeItem(key);
+    }
+  }
+}
 
 function prefix(pre: string, str: string) {
   return pre + '-' + str;
@@ -31,100 +120,8 @@ export const storage = {
   //
   // POST_ID_LIST = []string (post IDs)
   //
-  postIDList: () => {
-    const PREFIX = 'POST_ID_LIST';
-
-    return {
-      get: async function() {
-        const postIdText = await AsyncStorage.getItem(PREFIX);
-        if (!postIdText) {
-          return null;
-        }
-
-        return JSON.parse(postIdText) as string[];
-      },
-
-      add: async function(postIDs: string[]) {
-        if (postIDs.length === 0) {
-          throw(ERR_NULL_VALUE)
-        }
-
-        const savedPostIDs = await this.get()
-        if (savedPostIDs) {
-          postIDs = [...new Set([...savedPostIDs, ...postIDs])];
-        }
-
-        return await this.save(postIDs);
-      },
-
-      save: async function(postIDs: string[]) {
-        return await AsyncStorage.setItem(PREFIX, JSON.stringify(postIDs));
-      },
-
-      deleteFrom: async function (postID: string) {
-        const savedPostIDs = await this.get()
-        if (savedPostIDs) {
-          const filteredPostIDs = savedPostIDs.filter((id) => id !== postID);
-          this.save(filteredPostIDs);
-          return true;
-        }
-        return false;
-      },
-
-      deleteALL: async function () {
-        return await AsyncStorage.removeItem(PREFIX);
-      }
-    }
-  },
-
-  //
-  // OFFLINE_POST_ID_LIST = []string (offline post IDs)
-  //
-  offlinePostIDList: () => {
-    const PREFIX = 'OFFLINE_POST_ID_LIST';
-
-    return {
-      get: async function() {
-        const postIdText = await AsyncStorage.getItem(PREFIX);
-        if (!postIdText) {
-          return null;
-        }
-
-        return JSON.parse(postIdText) as string[];
-      },
-
-      add: async function(postIDs: string[]) {
-        if (postIDs.length === 0) {
-          throw(ERR_NULL_VALUE)
-        }
-
-        const savedPostIDs = await this.get()
-        if (savedPostIDs) {
-          postIDs = [...new Set([...savedPostIDs, ...postIDs])];
-        }
-
-        return await this.save(postIDs);
-      },
-
-      save: async function(postIDs: string[]) {
-        return await AsyncStorage.setItem(PREFIX, JSON.stringify(postIDs));
-      },
-
-      deleteFrom: async function (postID: string) {
-        const savedPostIDs = await this.get()
-        if (savedPostIDs) {
-          const filteredPostIDs = savedPostIDs.filter((id) => id !== postID);
-          this.save(filteredPostIDs);
-          return true;
-        }
-        return false;
-      },
-
-      deleteALL: async function () {
-        return await AsyncStorage.removeItem(PREFIX);
-      }
-    }
-  },
+  postIDList: stringArrayStorageTemplate('POST_ID_LIST'),
+  offlinePostIDList: stringArrayStorageTemplate('OFFLINE_POST_ID_LIST'),
 
   //
   // POST_DATA = string (post ID) => object (postData)

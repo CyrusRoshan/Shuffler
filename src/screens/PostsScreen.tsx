@@ -46,9 +46,9 @@ export default class PostsScreen extends Component<Props, State> {
     // Get all posts
     var postIDs;
     if (this.props.offline) {
-      postIDs = await storage.offlinePostIDList().get()
+      postIDs = await storage.offlinePostIDList.get()
     } else {
-      postIDs = await storage.postIDList().get()
+      postIDs = await storage.postIDList.get()
     }
 
     // Exit if no posts saved

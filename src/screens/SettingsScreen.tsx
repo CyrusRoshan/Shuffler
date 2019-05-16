@@ -63,7 +63,7 @@ export default class SettingsScreen extends Component<Props, State> {
 
   // Get count of saved items
   async getSavedItemCount() {
-    const savedItems = await storage.postIDList().get();
+    const savedItems = await storage.postIDList.get();
     if (!savedItems) {
       this.setState({
         savedItemCount: 0,
@@ -129,15 +129,15 @@ export default class SettingsScreen extends Component<Props, State> {
   }
 
   async clearPostData() {
-    const postIDs = await storage.postIDList().get()
+    const postIDs = await storage.postIDList.get()
     if (postIDs) {
-      postIDs.forEach(postID => {
-        storage.postData().delete(postID);
-        storage.imageData().delete(postID)
-      })
+      postIDs.forEach(async (postID) => {
+        await storage.postData().delete(postID);
+        await storage.imageData().delete(postID);
+      });
     }
-    storage.offlinePostIDList().deleteALL()
-    storage.postIDList().deleteALL()
+    await storage.offlinePostIDList.deleteALL();
+    await storage.postIDList.deleteALL();
     this.setState({
       savedItemCount: 0,
     })
@@ -222,7 +222,7 @@ export default class SettingsScreen extends Component<Props, State> {
     const allPostIDs = savedPostData.map((postData) => {
       return postData.prefixed_id;
     })
-    awaiters[0] = storage.postIDList().add(allPostIDs).then(savePhaseUpdater);
+    awaiters[0] = storage.postIDList.add(allPostIDs).then(savePhaseUpdater);
 
     // And save the KV map of post ID to post data
     savedPostData.forEach((postData, i) => {
@@ -327,8 +327,7 @@ export default class SettingsScreen extends Component<Props, State> {
             onStateChange={debug => this.setState({debug})}/>
           <BooleanOption optionText="Enable experimental video support?"
             getter={storage.settings().experimentalVideoSupport().get}
-            setter={storage.settings().experimentalVideoSupport().save}
-            onStateChange={debug => this.setState({debug})}/>
+            setter={storage.settings().experimentalVideoSupport().save}/>
 
           <Text style={styles.subtitle}>Auth</Text>
           <ClickOption optionText="Log out?"
@@ -352,15 +351,16 @@ export default class SettingsScreen extends Component<Props, State> {
 
     return (
       <View style={styles.container}>
-        <View style={styles.postHolder}>
           <Text style={styles.title}>Settings</Text>
-          <ScrollView alwaysBounceVertical={false}>
+          <ScrollView
+          style={styles.innerContainer}
+          alwaysBounceVertical={false}>
             {loginButton}
             {userInfo}
             {populatingText}
             {loggedInOptions}
+            <View style={{height: 50}}></View>
           </ScrollView>
-        </View>
       </View>
     );
   }
@@ -442,10 +442,7 @@ const styles = StyleSheet.create({
     color: Colors.lightBlue
   },
 
-  postHolder: {
-    flex: 1,
-    width: '100%',
-
-    paddingTop: 10,
+  innerContainer: {
+    paddingBottom: 50,
   },
 });
