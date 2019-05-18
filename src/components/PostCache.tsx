@@ -5,6 +5,7 @@ import { storage, ImageData } from '../lib/storage';
 interface Props {
   postData: PostData[],
   offline?: boolean,
+  saveForOffline?: boolean,
 }
 
 // TODO: try this as a KV pair, then use it as a global object incorporated into storage, if it improves speed.
@@ -51,8 +52,11 @@ export class PostCache {
     // Check URL
     const fetched = await this.getFromURL(postData.dataURL);
     if (fetched) {
-      storage.imageData().save(postData.prefixed_id, fetched);
-      storage.offlinePostIDList.add([postData.prefixed_id])
+      // Offline save
+      if (this.props.saveForOffline) {
+        storage.imageData().save(postData.prefixed_id, fetched);
+        storage.offlinePostIDList.add([postData.prefixed_id])
+      }
       this.state.cache[index] = fetched;
       return fetched
     }

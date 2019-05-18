@@ -1,11 +1,13 @@
-import React, { ReactNode } from 'react';
+import React from 'react';
 import { Component } from 'react';
-import { StyleSheet, Text, View, Linking } from 'react-native';
+import { StyleSheet, Text, View, StyleSheetProperties, StyleProp, ViewStyle } from 'react-native';
 
 import Colors from '../constants/Colors';
 
 export interface BoolProps {
   optionText: string
+
+  style?: StyleProp<ViewStyle>
 
   getter: () => Promise<boolean> | boolean
   setter: (value: boolean) => any
@@ -51,8 +53,10 @@ export class BooleanOption extends Component<BoolProps, BoolState> {
     const style = this.state.enabled ? styles.yes : styles.no;
 
     return (
-      <View style={styles.inline}>
-        <Text style={styles.optionText}>{this.props.optionText} <Text style={style} onPress={switchFunc}>{valueText}</Text></Text>
+      <View style={[styles.inline, this.props.style]}>
+        <Text style={styles.optionText}>{this.props.optionText}
+          <Text style={style} onPress={switchFunc}> {valueText}</Text>
+        </Text>
       </View>
     )
   }
@@ -61,6 +65,8 @@ export class BooleanOption extends Component<BoolProps, BoolState> {
 export interface ClickProps {
   optionText: string
   action: () => any
+
+  style?: StyleProp<ViewStyle>
 };
 
 interface ClickState {}
@@ -69,7 +75,8 @@ export class ClickOption extends Component<ClickProps, ClickState> {
   render() {
     return (
       <View style={styles.inline}>
-        <Text style={styles.optionText}>{this.props.optionText} <Text style={styles.press} onPress={this.props.action}>Sure</Text></Text>
+        <Text style={styles.optionText}>{this.props.optionText}
+        <Text style={styles.press} onPress={this.props.action}> Sure</Text></Text>
       </View>
     )
   }
@@ -78,14 +85,14 @@ export class ClickOption extends Component<ClickProps, ClickState> {
 const styles = StyleSheet.create({
   inline: {
     flexDirection: 'row',
-    width: '70%',
+    width: '100%',
     alignSelf: 'center',
-    marginBottom: 5,
+    marginBottom: 10,
   },
 
   optionText: {
     fontSize: 20,
-    lineHeight: 30,
+    lineHeight: 23,
     fontWeight: '500',
 
     marginBottom: 0,
@@ -124,6 +131,6 @@ const styles = StyleSheet.create({
     marginBottom: 0,
 
     alignSelf: 'stretch',
-    color: Colors.lightOrange,
+    color: Colors.darkYellow,
   },
 })

@@ -4,44 +4,6 @@ import { Mutex } from 'async-mutex';
 
 const ERR_NULL_VALUE = 'error! null value save attempt!'
 
-class RWlock {
-  read = 0
-  write = false
-
-  currentPromise: Promise<any>|undefined = undefined
-  resolve: Function = () => {};
-
-  constructor() {}
-  async rLock() {
-    if (!this.write) {
-      this.read++;
-      this.currentPromise = new Promise((resolve) => this.resolve = resolve);
-      return;
-    }
-    await this.currentPromise;
-    this.read++;
-  }
-  async rUnlock() {
-    if (this.read === 1) {
-      this.resolve();
-    }
-    this.read--;
-  }
-  async wLock() {
-    if (this.read !== 0 && !this.write) {
-      this.write = true;
-      this.currentPromise = new Promise((resolve) => this.resolve = resolve);
-      return;
-    }
-    await this.currentPromise;
-    this.write = true;
-  }
-  async wUnlock() {
-    this.resolve();
-    this.write = false;
-  }
-}
-
 const stringArrayStorageTemplate = (key: string) => {
   const mutex = new Mutex();
   return {
@@ -114,6 +76,7 @@ export const storage = {
       clickableLinks: () => boolStorageTemplate(prefix(SETTINGS_PREFIX, "CLICKABLE_LINKS")),
       debugInfo: () => boolStorageTemplate(prefix(SETTINGS_PREFIX, "DEBUG_INFO")),
       experimentalVideoSupport: () => boolStorageTemplate(prefix(SETTINGS_PREFIX, "VIDEO_SUPPORT")),
+      swipeOut: () => boolStorageTemplate(prefix(SETTINGS_PREFIX, "SWIPEOUT")),
     }
   },
 

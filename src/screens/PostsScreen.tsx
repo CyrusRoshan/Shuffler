@@ -28,6 +28,7 @@ interface State {
   postData: PostData[],
   clickableLinks: boolean,
   savePostImages: boolean,
+  swipeOut: boolean,
 }
 
 export default class PostsScreen extends Component<Props, State> {
@@ -38,6 +39,7 @@ export default class PostsScreen extends Component<Props, State> {
       postData: [],
       clickableLinks: false,
       savePostImages: false,
+      swipeOut: false,
     }
     this.getPostsData();
   }
@@ -58,7 +60,7 @@ export default class PostsScreen extends Component<Props, State> {
     }
 
     // Shuffle posts
-    // shuffle(postIDs);
+    shuffle(postIDs);
 
     // Whether to filter out video posts or not
     var videoSupport = await storage.settings().experimentalVideoSupport().get()
@@ -80,11 +82,13 @@ export default class PostsScreen extends Component<Props, State> {
     }
 
     // Create post cache
-    const postCache = new PostCache({postData, offline: this.props.offline});
+    const saveForOffline = await storage.settings().savePostImages().get();
+    const postCache = new PostCache({postData, offline: this.props.offline, saveForOffline});
 
     // Get settings and pass on
     const savePostImages = await storage.settings().savePostImages().get();
     const clickableLinks = await storage.settings().clickableLinks().get();
+    const swipeOut = await storage.settings().swipeOut().get();
 
     // Save shuffled post data to state
     this.setState({
@@ -92,6 +96,7 @@ export default class PostsScreen extends Component<Props, State> {
       postData,
       savePostImages,
       clickableLinks,
+      swipeOut,
     })
   }
 
@@ -102,22 +107,35 @@ export default class PostsScreen extends Component<Props, State> {
         cache={this.state.postCache}
         postData={this.state.postData}
         clickableLinks={this.state.clickableLinks}
-        savePostImages={this.state.savePostImages}></PostScroller>
+        savePostImages={this.state.savePostImages}
+        swipeOut={this.state.swipeOut}
+        />
     }
 
     if (this.state.isEmpty) {
-      var emptyMessage = "you have no cached posts.\n\ngo to the settings page!";
+      var emptyMessage = `you have no cached posts.\n
+      go to the settings page to sync them from reddit!`;
       if (this.props.offline) {
-        emptyMessage = `you have no offline posts.\n\nposts will be cached for offline use as you view them normally in "all saved posts"`;
+        emptyMessage = `you have no offline posts.\n
+        posts will be cached for offline use if you:\n
+        1: enable the "lazy save" option in settings\n
+        2: view posts in "all saved posts"`;
       }
       body = <View style={styles.infoContainer}>
         <Text style={styles.infoMessage}>{emptyMessage}</Text>
       </View>
     }
 
+    var title;
+    if (this.props.offline) {
+      title = "offline posts";
+    } else {
+      title = "all saved posts";
+    }
+
 		return (
 			<View style={styles.container}>
-        <Text style={styles.title}>all saved posts</Text>
+        <Text style={styles.title}>{title}</Text>
 
         <View style={styles.postHolder}>
           {body}

@@ -85,7 +85,8 @@ export default class SettingsScreen extends Component<Props, State> {
       this.props.navigation.setParams({ code: null });
 
       await api.auth().login(code)
-      this.getLogin();
+      await this.fetchAndPopulateSavedItems();
+      await this.getLogin();
     }
   }
 
@@ -107,7 +108,6 @@ export default class SettingsScreen extends Component<Props, State> {
       loggedIn: true,
       name: username,
     });
-    return true;
   }
 
   async logOut() {
@@ -266,17 +266,17 @@ export default class SettingsScreen extends Component<Props, State> {
         debugAuthOptions = (<>
           <ClickOption optionText="Revalidate auth tokens?"
             action={() => this.revalidateAuth()} />
-          <ClickOption optionText="Clear all data?"
-            action={() => alertUser(
-              'Are you sure?',
-              'This will clear posts, settings, everything!',
-              this.clearAllData.bind(this)
-            )}/>
           <ClickOption optionText="Clear cached posts?"
             action={() => alertUser(
               'Are you sure?',
               'This will clear offline posts!',
               this.clearPostData.bind(this)
+            )} />
+          <ClickOption optionText="Clear all data?"
+            action={() => alertUser(
+              'Are you sure?',
+              'This will clear posts, settings, everything!',
+              this.clearAllData.bind(this)
             )}/>
         </>)
 
@@ -300,18 +300,16 @@ export default class SettingsScreen extends Component<Props, State> {
 
       userInfo = (
         <>
-          <Text style={styles.regularText}>-----------------</Text>
-          <Text style={styles.regularText}>Logged in, {this.state.name}!</Text>
+          <Text style={styles.regularText}>Logged in, <Text style={{color: Colors.darkYellow}}>{this.state.name}!</Text></Text>
           <Text style={styles.regularText}>Cached post count: {this.state.savedItemCount}</Text>
           {debugInfo}
-          <Text style={styles.regularText}>-----------------</Text>
         </>
       )
       loggedInOptions = (
         <>
           <View style={{marginTop: 20}}></View>
           <Text style={styles.subtitle}>Actions</Text>
-          <ClickOption optionText="Cache saved posts from Reddit?"
+          <ClickOption optionText="Re-cache saved posts from Reddit?"
             action={() => this.fetchAndPopulateSavedItems()} />
 
           <Text style={styles.subtitle}>Options</Text>
@@ -328,6 +326,9 @@ export default class SettingsScreen extends Component<Props, State> {
           <BooleanOption optionText="Enable experimental video support?"
             getter={storage.settings().experimentalVideoSupport().get}
             setter={storage.settings().experimentalVideoSupport().save}/>
+          <BooleanOption optionText="Enable swipe to delete?"
+            getter={storage.settings().swipeOut().get}
+            setter={storage.settings().swipeOut().save}/>
 
           <Text style={styles.subtitle}>Auth</Text>
           <ClickOption optionText="Log out?"
@@ -443,6 +444,8 @@ const styles = StyleSheet.create({
   },
 
   innerContainer: {
+    paddingLeft: 30,
+    paddingRight: 30,
     paddingBottom: 50,
   },
 });

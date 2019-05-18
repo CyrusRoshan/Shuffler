@@ -101,6 +101,7 @@ interface Props {
   data: PostData,
 
   clickableLinks: boolean
+  swipeOut: boolean
   savePostImages: boolean
 }
 
@@ -268,6 +269,25 @@ export class Post extends React.Component<Props, State> {
       );
     }
 
+    const content = (
+      <>
+        <View style={{
+          paddingTop: 5,
+          paddingHorizontal: 5,
+        }}>
+          {title}
+          {postInfo}
+        </View>
+        { postContent }
+      </>
+    )
+
+    if (!this.props.swipeOut) {
+      return <View>
+        {content}
+      </View>
+    }
+
     return (
       <Animated.View style={{
         left: this.state.animVal.interpolate({
@@ -282,15 +302,9 @@ export class Post extends React.Component<Props, State> {
         <Swipeout
           style={styles.rootContainer}
           backgroundColor={'transparent'}
+          sensitivity={-1000}
           right={this.swipeoutButtons}>
-          <View style={{
-            paddingTop: 5,
-            paddingHorizontal: 5,
-          }}>
-            {title}
-            {postInfo}
-          </View>
-          {postContent}
+          {content}
         </Swipeout>
       </Animated.View>
     )
