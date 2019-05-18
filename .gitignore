@@ -60,7 +60,7 @@ buck-out/
 .jest/
 
 # ios dev info
-ios/
+# ios/
 
 # vs code
 .vscode/
