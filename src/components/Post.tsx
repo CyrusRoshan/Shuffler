@@ -289,8 +289,7 @@ export class Post extends React.Component<Props, State> {
     }
 
     return (
-      <View style={styles.rootContainer}>
-        <Animated.View style={{
+      <Animated.View style={[styles.rootContainer, {
           left: this.state.animVal.interpolate({
             inputRange: [0, 1],
             outputRange: ['0%', '-200%']  // 0 : 150, 0.5 : 75, 1 : 0
@@ -299,7 +298,7 @@ export class Post extends React.Component<Props, State> {
             inputRange: [0, 1],
             outputRange: ['100%', '0%']  // 0 : 150, 0.5 : 75, 1 : 0
           }),
-        }}>
+        }]}>
           <Swipeout
             backgroundColor={'transparent'}
             sensitivity={-1000}
@@ -307,7 +306,6 @@ export class Post extends React.Component<Props, State> {
             {content}
           </Swipeout>
         </Animated.View>
-      </View>
     )
   }
 }
