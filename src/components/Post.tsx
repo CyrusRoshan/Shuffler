@@ -283,38 +283,39 @@ export class Post extends React.Component<Props, State> {
     )
 
     if (!this.props.swipeOut) {
-      return <View>
+      return <View style={styles.rootContainer}>
         {content}
       </View>
     }
 
     return (
-      <Animated.View style={{
-        left: this.state.animVal.interpolate({
-          inputRange: [0, 1],
-          outputRange: ['0%', '-200%']  // 0 : 150, 0.5 : 75, 1 : 0
-        }),
-        maxHeight: this.state.animVal.interpolate({
-          inputRange: [0, 1],
-          outputRange: ['100%', '0%']  // 0 : 150, 0.5 : 75, 1 : 0
-        }),
-      }}>
-        <Swipeout
-          style={styles.rootContainer}
-          backgroundColor={'transparent'}
-          sensitivity={-1000}
-          right={this.swipeoutButtons}>
-          {content}
-        </Swipeout>
-      </Animated.View>
+      <View style={styles.rootContainer}>
+        <Animated.View style={{
+          left: this.state.animVal.interpolate({
+            inputRange: [0, 1],
+            outputRange: ['0%', '-200%']  // 0 : 150, 0.5 : 75, 1 : 0
+          }),
+          maxHeight: this.state.animVal.interpolate({
+            inputRange: [0, 1],
+            outputRange: ['100%', '0%']  // 0 : 150, 0.5 : 75, 1 : 0
+          }),
+        }}>
+          <Swipeout
+            backgroundColor={'transparent'}
+            sensitivity={-1000}
+            right={this.swipeoutButtons}>
+            {content}
+          </Swipeout>
+        </Animated.View>
+      </View>
     )
   }
 }
 
 const styles = StyleSheet.create({
   rootContainer: {
-    marginTop: 10,
-    marginBottom: 15,
+    marginTop: 5,
+    marginBottom: 10,
 
     borderBottomColor: Colors.black,
     borderBottomWidth: 2,
