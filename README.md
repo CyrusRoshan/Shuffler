@@ -1,10 +1,10 @@
 # Shuffler
-Randomly shuffle saved comments/posts from Reddit
+Randomly shuffle saved image and video posts from Reddit
 
-<img src="img_examples/main.png" alt="main" width="250"></img>
-<img src="img_examples/posts.png" alt="posts" width="250"></img>
-<img src="img_examples/deleting.png" alt="deleting" width="250"></img>
-<img src="img_examples/settings.png" alt="settings" width="250"></img>
+<img src="img_examples/main.png" alt="main" width="200"></img>
+<img src="img_examples/posts.png" alt="posts" width="200"></img>
+<img src="img_examples/deleting.png" alt="deleting" width="200"></img>
+<img src="img_examples/settings.png" alt="settings" width="200"></img>
 
 # Features
 
