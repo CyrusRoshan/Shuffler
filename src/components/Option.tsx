@@ -1,6 +1,6 @@
 import React from 'react';
 import { Component } from 'react';
-import { StyleSheet, Text, View, StyleSheetProperties, StyleProp, ViewStyle } from 'react-native';
+import { StyleSheet, Text, View, StyleSheetProperties, StyleProp, ViewStyle, Switch, Button } from 'react-native';
 
 import Colors from '../constants/Colors';
 
@@ -49,14 +49,19 @@ export class BooleanOption extends Component<BoolProps, BoolState> {
 
   render() {
     const switchFunc = () => this.switchStateTo(!this.state.enabled);
-    const valueText = this.state.enabled ? "Yes" : "No";
-    const style = this.state.enabled ? styles.yes : styles.no;
 
     return (
       <View style={[styles.inline, this.props.style]}>
-        <Text style={styles.optionText}>{this.props.optionText}
-          <Text style={style} onPress={switchFunc}> {valueText}</Text>
-        </Text>
+        <Text style={styles.optionText}>{this.props.optionText}</Text>
+        <Switch
+        value={this.state.enabled}
+        onValueChange={switchFunc}
+        trackColor={{
+          true: Colors.lightBlue,
+          false: Colors.darkWhite,
+        }}
+        thumbColor={Colors.lightWhite}
+        />
       </View>
     )
   }
@@ -65,6 +70,7 @@ export class BooleanOption extends Component<BoolProps, BoolState> {
 export interface ClickProps {
   optionText: string
   action: () => any
+  dangerLevel?: 0 | 1 | 2
 
   style?: StyleProp<ViewStyle>
 };
@@ -73,10 +79,25 @@ interface ClickState {}
 
 export class ClickOption extends Component<ClickProps, ClickState> {
   render() {
+    const dangerLevels = [
+      Colors.lightBlue,
+      Colors.lightYellow,
+      Colors.lightRed,
+    ]
+    const dangerColor = dangerLevels[this.props.dangerLevel || 0];
+
     return (
-      <View style={styles.inline}>
-        <Text style={styles.optionText}>{this.props.optionText}
-        <Text style={styles.press} onPress={this.props.action}> Sure</Text></Text>
+      <View style={{
+        justifyContent: 'center',
+        marginTop: -2,
+        marginBottom: -2,
+      }}>
+        <Button
+          onPress={this.props.action}
+          title={this.props.optionText}
+          color={dangerColor}
+          accessibilityLabel={this.props.optionText}
+        />
       </View>
     )
   }
@@ -85,8 +106,11 @@ export class ClickOption extends Component<ClickProps, ClickState> {
 const styles = StyleSheet.create({
   inline: {
     flexDirection: 'row',
+    justifyContent: 'flex-start',
+    flexWrap: 'nowrap',
+    alignItems: 'center',
+
     width: '100%',
-    alignSelf: 'center',
     marginBottom: 10,
   },
 
@@ -94,43 +118,24 @@ const styles = StyleSheet.create({
     fontSize: 20,
     lineHeight: 23,
     fontWeight: '500',
-
-    marginBottom: 0,
-
-    alignSelf: 'stretch',
     color: Colors.darkWhite,
-  },
-
-  press: {
-    fontSize: 20,
-    lineHeight: 30,
-    fontWeight: '500',
 
     marginBottom: 0,
 
-    alignSelf: 'stretch',
-    color: Colors.lightBlue,
+    alignSelf: 'center',
+    flexGrow: 1,
+    flex: 1,
   },
 
-  yes: {
+  buttonText: {
     fontSize: 20,
-    lineHeight: 30,
-    fontWeight: '500',
+    fontWeight: '900',
 
     marginBottom: 0,
+    marginLeft: 10,
 
-    alignSelf: 'stretch',
-    color: Colors.lightGreen,
-  },
-
-  no: {
-    fontSize: 20,
-    lineHeight: 30,
-    fontWeight: '500',
-
-    marginBottom: 0,
-
-    alignSelf: 'stretch',
-    color: Colors.darkYellow,
+    alignSelf: 'flex-start',
+    flexGrow: 0,
+    flexShrink: 0,
   },
 })

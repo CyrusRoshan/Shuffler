@@ -56,7 +56,7 @@ export const api = {
         throw(`error when authenticating: ${JSON.stringify(res)}`)
       },
 
-      forceRefresh: function(){ RefreshTokens(this.refresh) },
+      forceRefresh: function(){ return RefreshTokens(this.refresh) },
 
       refresh: async function(refreshToken: string) {
         const res = await TokenRequest.refresh(ACCESS_TOKEN_URL, CLIENT_ID, refreshToken);

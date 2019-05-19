@@ -91,23 +91,17 @@ export default class SettingsScreen extends Component<Props, State> {
   }
 
   async getLogin() {
-    var username = await storage.settings().username().get()
-    if (!username) {
-      const user  = await api.call().currentUser();
-
-      username = user.json.name;
-      if (!username) {
-        throw(`error fetching user: ${user}`);
-      }
-      storage.settings().username().save(username);
+    const username = await storage.settings().username().get()
+    if (username) {
+      const tokens = await GetTokens(api.auth().refresh)
+      this.setState({
+        tokens,
+        loggedIn: true,
+        name: username,
+      });
+    } else {
+      await this.revalidateAuth();
     }
-
-    const tokens = await GetTokens(api.auth().refresh)
-    this.setState({
-      tokens,
-      loggedIn: true,
-      name: username,
-    });
   }
 
   async logOut() {
@@ -144,10 +138,22 @@ export default class SettingsScreen extends Component<Props, State> {
   }
 
   async revalidateAuth() {
-    await RefreshTokens(api.auth().refresh);
-    await api.auth().forceRefresh();
+    const tokens = await api.auth().forceRefresh();
+    this.setState({tokens});
+
     try {
-      await api.call().currentUser();
+      const user = await api.call().currentUser();
+
+      const username = user.json.name;
+      if (!username) {
+        throw (`error fetching user: ${user}`);
+      }
+
+      await storage.settings().username().save(username);
+      this.setState({
+        name: username,
+        loggedIn: true
+      })
     } catch (e) {
       this.setState({
         loggedIn: false,
@@ -264,20 +270,26 @@ export default class SettingsScreen extends Component<Props, State> {
       var debugAuthOptions;
       if (this.state.debug) {
         debugAuthOptions = (<>
-          <ClickOption optionText="Revalidate auth tokens?"
-            action={() => this.revalidateAuth()} />
           <ClickOption optionText="Clear cached posts?"
             action={() => alertUser(
               'Are you sure?',
               'This will clear offline posts!',
               this.clearPostData.bind(this)
-            )} />
+            )}
+            dangerLevel={1}
+          />
           <ClickOption optionText="Clear all data?"
             action={() => alertUser(
               'Are you sure?',
               'This will clear posts, settings, everything!',
-              this.clearAllData.bind(this)
-            )}/>
+              this.clearAllData.bind(this))
+            }
+            dangerLevel={2}
+          />
+          <ClickOption optionText="Manually refresh tokens?"
+            action={() => this.revalidateAuth()}
+            dangerLevel={0}
+          />
         </>)
 
         var debugTokenInfo;
@@ -300,7 +312,7 @@ export default class SettingsScreen extends Component<Props, State> {
 
       userInfo = (
         <>
-          <Text style={styles.regularText}>Logged in, <Text style={{color: Colors.darkYellow}}>{this.state.name}!</Text></Text>
+          <Text style={styles.regularText}>Logged in, <Text style={{color: Colors.darkYellow}}>{this.state.name}</Text>!</Text>
           <Text style={styles.regularText}>Cached post count: {this.state.savedItemCount}</Text>
           {debugInfo}
         </>
@@ -333,10 +345,12 @@ export default class SettingsScreen extends Component<Props, State> {
           <Text style={styles.subtitle}>Auth</Text>
           <ClickOption optionText="Log out?"
             action={() => alertUser(
-            'Are you sure?',
-            `Just FYI, logging you out won't delete your cached on-device post or image data.`,
-            this.logOut.bind(this)
-          )}/>
+              'Are you sure?',
+              `Just FYI, logging you out won't delete your cached on-device post or image data.`,
+              this.logOut.bind(this))
+            }
+            dangerLevel={1}
+          />
           {debugAuthOptions}
         </>
       )
@@ -411,8 +425,8 @@ const styles = StyleSheet.create({
     lineHeight: 40,
     fontWeight: '900',
 
-    marginTop: 10,
-    marginBottom: 0,
+    marginTop: 5,
+    marginBottom: 3,
 
     textAlign: 'center',
     alignSelf: 'stretch',
