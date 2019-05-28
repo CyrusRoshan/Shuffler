@@ -336,19 +336,19 @@ export default class SettingsScreen extends Component<Props, State> {
           <BooleanOption optionText="Lazy save posts for offline viewing?"
             getter={storage.settings().savePostImages().get}
             setter={storage.settings().savePostImages().save}/>
-          <BooleanOption optionText="Should clicking posts navigate to reddit?"
-            getter={storage.settings().clickableLinks().get}
-            setter={storage.settings().clickableLinks().save}/>
-          <BooleanOption optionText="Show debug info?"
-            getter={storage.settings().debugInfo().get}
-            setter={storage.settings().debugInfo().save}
-            onStateChange={debug => this.setState({debug})}/>
           <BooleanOption optionText="Enable experimental video support?"
             getter={storage.settings().experimentalVideoSupport().get}
             setter={storage.settings().experimentalVideoSupport().save}/>
           <BooleanOption optionText="Enable swipe to delete?"
             getter={storage.settings().swipeOut().get}
             setter={storage.settings().swipeOut().save}/>
+          <BooleanOption optionText="Should clicking posts navigate to reddit?"
+            getter={storage.settings().clickableLinks().get}
+            setter={storage.settings().clickableLinks().save} />
+          <BooleanOption optionText="Show debug info?"
+            getter={storage.settings().debugInfo().get}
+            setter={storage.settings().debugInfo().save}
+            onStateChange={debug => this.setState({ debug })} />
           {debugOptions}
 
           <Text style={styles.subtitle}>Auth</Text>
