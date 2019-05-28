@@ -29,6 +29,7 @@ interface State {
   clickableLinks: boolean,
   savePostImages: boolean,
   swipeOut: boolean,
+  linkPrefix: string,
 }
 
 export default class PostsScreen extends Component<Props, State> {
@@ -40,6 +41,7 @@ export default class PostsScreen extends Component<Props, State> {
       clickableLinks: false,
       savePostImages: false,
       swipeOut: false,
+      linkPrefix: '',
     }
     this.getPostsData();
   }
@@ -89,6 +91,7 @@ export default class PostsScreen extends Component<Props, State> {
     const savePostImages = await storage.settings().savePostImages().get();
     const clickableLinks = await storage.settings().clickableLinks().get();
     const swipeOut = await storage.settings().swipeOut().get();
+    const linkPrefix = await storage.settings().linkPrefix().get() || "https://www.reddit.com";
 
     // Save shuffled post data to state
     this.setState({
@@ -97,6 +100,7 @@ export default class PostsScreen extends Component<Props, State> {
       savePostImages,
       clickableLinks,
       swipeOut,
+      linkPrefix,
     })
   }
 
@@ -109,6 +113,7 @@ export default class PostsScreen extends Component<Props, State> {
         clickableLinks={this.state.clickableLinks}
         savePostImages={this.state.savePostImages}
         swipeOut={this.state.swipeOut}
+        linkPrefix={this.state.linkPrefix}
         />
     }
 

@@ -77,6 +77,7 @@ export const storage = {
       debugInfo: () => boolStorageTemplate(prefix(SETTINGS_PREFIX, "DEBUG_INFO")),
       experimentalVideoSupport: () => boolStorageTemplate(prefix(SETTINGS_PREFIX, "VIDEO_SUPPORT")),
       swipeOut: () => boolStorageTemplate(prefix(SETTINGS_PREFIX, "SWIPEOUT")),
+      linkPrefix: () => stringStorageTemplate(prefix(SETTINGS_PREFIX, "LINK_PREFIX")),
     }
   },
 
@@ -151,14 +152,15 @@ export const storage = {
 const stringStorageTemplate = (key: string) => {
   return {
     save: async function (value: string) {
-      if (!value) {
-        throw (ERR_NULL_VALUE)
-      }
       return await AsyncStorage.setItem(key, value);
     },
 
     get: async function () {
-      return await AsyncStorage.getItem(key);
+      const resp = await AsyncStorage.getItem(key);
+      if (resp === null) {
+        return '';
+      }
+      return resp;
     },
 
     delete: async function () {
@@ -170,9 +172,6 @@ const stringStorageTemplate = (key: string) => {
 const boolStorageTemplate = (key: string) => {
   return {
     save: async function (value: boolean) {
-      if (value === undefined || value === null) {
-        throw (ERR_NULL_VALUE)
-      }
       return await AsyncStorage.setItem(key, JSON.stringify(value));
     },
 

@@ -100,6 +100,7 @@ interface Props {
 
   data: PostData,
 
+  linkPrefix: string,
   clickableLinks: boolean
   swipeOut: boolean
   savePostImages: boolean
@@ -159,7 +160,7 @@ export class Post extends React.Component<Props, State> {
 
   clickFunc = (path: string) => () => {
     if (this.props.clickableLinks) {
-      Linking.openURL("https://www.reddit.com" + path);
+      Linking.openURL(this.props.linkPrefix + path);
     }
   }
 
@@ -256,7 +257,7 @@ export class Post extends React.Component<Props, State> {
       postContent = (
         <View style={{ width: '100%', backgroundColor: Colors.lightBlack }}>
           <Video source={{ uri: this.props.data.dataURL }}   // Can be a URL or a local file.
-            controls={false}
+            controls={true}
             style={{
               flex: 1,
               width: '100%',

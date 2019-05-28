@@ -1,8 +1,9 @@
 import React from 'react';
 import { Component } from 'react';
-import { StyleSheet, Text, View, StyleSheetProperties, StyleProp, ViewStyle, Switch, Button } from 'react-native';
+import { StyleSheet, Text, View, StyleSheetProperties, StyleProp, ViewStyle, Switch, Button, TextInput } from 'react-native';
 
 import Colors from '../constants/Colors';
+import { placeholder } from '@babel/types';
 
 export interface BoolProps {
   optionText: string
@@ -67,6 +68,80 @@ export class BooleanOption extends Component<BoolProps, BoolState> {
   }
 }
 
+export interface TextProps {
+  optionText: string
+  placeholder: string
+
+  style?: StyleProp<ViewStyle>
+
+  getter: () => Promise<string> | string
+  setter: (value: string) => any
+  onStateChange?: (value: string) => any
+};
+
+interface TextState {
+  value?: string,
+}
+
+export class TextOption extends Component<TextProps, TextState> {
+  constructor(props: TextProps) {
+    super(props);
+
+    const getter = this.props.getter()
+    if (typeof getter === "string") {
+      this.state = {
+        value: getter,
+      }
+    } else {
+      this.state = {};
+
+      getter.then(value => {
+        if (value) {
+          this.setValue(value);
+        }
+      })
+    }
+  }
+
+  setValue(value: string) {
+    if (!value) {
+      value = '';
+    }
+    console.log(value)
+
+    this.props.setter(value);
+    this.setState({value: value});
+
+    if (this.props.onStateChange) {
+      this.props.onStateChange(value);
+    }
+  }
+
+  render() {
+    return (
+      <View style={[styles.notInline, this.props.style]}>
+        <Text style={[styles.optionText, {width: '100%'}]}>{this.props.optionText}</Text>
+        <TextInput
+          style={{
+            borderColor: Colors.lightGray,
+            borderWidth: 3,
+            color: Colors.lightWhite,
+            padding: 7,
+            paddingLeft: 10,
+            paddingRight: 10,
+            borderRadius: 10,
+            marginTop: 5,
+          }}
+          onChangeText={(value: string) => this.setValue(value)}
+          value={this.state.value}
+          placeholder={this.props.placeholder}
+          placeholderTextColor={Colors.lightGray}
+        />
+      </View>
+    )
+  }
+}
+
 export interface ClickProps {
   optionText: string
   action: () => any
@@ -110,6 +185,11 @@ const styles = StyleSheet.create({
     flexWrap: 'nowrap',
     alignItems: 'center',
 
+    width: '100%',
+    marginBottom: 10,
+  },
+
+  notInline: {
     width: '100%',
     marginBottom: 10,
   },

@@ -10,7 +10,7 @@ import { ParsePost, PostData} from '../components/Post';
 import {api, ListingParams, LoginURL} from '../lib/api';
 import { storage } from '../lib/storage';
 import { updater, getReadableTimeUntil } from '../lib/utils';
-import { BooleanOption, ClickOption } from '../components/Option';
+import { BooleanOption, ClickOption, TextOption } from '../components/Option';
 import { GetTokens, TokenHolder, DeleteTokens, RefreshTokens } from '../lib/tokenStorage';
 import { ScrollView } from 'react-native-gesture-handler';
 
@@ -268,7 +268,15 @@ export default class SettingsScreen extends Component<Props, State> {
       // Only displayed if debug mode is on
       var debugInfo;
       var debugAuthOptions;
+      var debugOptions;
       if (this.state.debug) {
+        debugOptions = (<>
+          <TextOption optionText="Reddit link prefix? Can be used to open other apps on iOS."
+            placeholder="https://www.reddit.com"
+            getter={storage.settings().linkPrefix().get}
+            setter={storage.settings().linkPrefix().save} />
+        </>)
+
         debugAuthOptions = (<>
           <ClickOption optionText="Clear cached posts?"
             action={() => alertUser(
@@ -328,7 +336,7 @@ export default class SettingsScreen extends Component<Props, State> {
           <BooleanOption optionText="Lazy save posts for offline viewing?"
             getter={storage.settings().savePostImages().get}
             setter={storage.settings().savePostImages().save}/>
-          <BooleanOption optionText="Should clicking posts navigate to reddit.com?"
+          <BooleanOption optionText="Should clicking posts navigate to reddit?"
             getter={storage.settings().clickableLinks().get}
             setter={storage.settings().clickableLinks().save}/>
           <BooleanOption optionText="Show debug info?"
@@ -341,6 +349,7 @@ export default class SettingsScreen extends Component<Props, State> {
           <BooleanOption optionText="Enable swipe to delete?"
             getter={storage.settings().swipeOut().get}
             setter={storage.settings().swipeOut().save}/>
+          {debugOptions}
 
           <Text style={styles.subtitle}>Auth</Text>
           <ClickOption optionText="Log out?"

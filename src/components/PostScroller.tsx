@@ -12,9 +12,11 @@ import { PostCache } from './PostCache';
 export interface Props {
   cache: PostCache,
   postData: PostData[]
+
   savePostImages: boolean
   swipeOut: boolean
   clickableLinks: boolean
+  linkPrefix: string
 }
 
 export interface State {
@@ -31,6 +33,7 @@ export default class PostScroller extends Component<Props, State> {
   }
 
   render() {
+    console.log(this.props.linkPrefix)
     return (
       <FlatList
         style={styles.root}
@@ -47,6 +50,7 @@ export default class PostScroller extends Component<Props, State> {
             cache={this.props.cache} data={info.item}
             clickableLinks={this.props.clickableLinks}
             savePostImages={this.props.savePostImages}
+            linkPrefix={this.props.linkPrefix}
             swipeOut={this.props.swipeOut}
             />
         )}
