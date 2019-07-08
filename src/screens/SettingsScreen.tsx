@@ -275,6 +275,12 @@ export default class SettingsScreen extends Component<Props, State> {
             placeholder="https://www.reddit.com"
             getter={storage.settings().linkPrefix().get}
             setter={storage.settings().linkPrefix().save} />
+          <BooleanOption optionText="Hide post details?"
+            getter={storage.settings().hidePostDetails().get}
+            setter={storage.settings().hidePostDetails().save} />
+          <BooleanOption optionText="Hide post title?"
+            getter={storage.settings().hidePostTitle().get}
+            setter={storage.settings().hidePostTitle().save} />
         </>)
 
         debugAuthOptions = (<>

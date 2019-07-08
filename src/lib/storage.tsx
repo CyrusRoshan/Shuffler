@@ -78,6 +78,8 @@ export const storage = {
       experimentalVideoSupport: () => boolStorageTemplate(prefix(SETTINGS_PREFIX, "VIDEO_SUPPORT")),
       swipeOut: () => boolStorageTemplate(prefix(SETTINGS_PREFIX, "SWIPEOUT")),
       linkPrefix: () => stringStorageTemplate(prefix(SETTINGS_PREFIX, "LINK_PREFIX")),
+      hidePostDetails: () => boolStorageTemplate(prefix(SETTINGS_PREFIX, "HIDE_POST_DETAILS")),
+      hidePostTitle: () => boolStorageTemplate(prefix(SETTINGS_PREFIX, "HIDE_POST_TITLE")),
     }
   },
 

@@ -5,14 +5,13 @@ import {
   StyleSheet,
   Text,
   View,
-  TouchableOpacity,
   Dimensions,
   Linking,
 } from 'react-native';
 
 import Swipeout from 'react-native-swipeout';
 import Feather from 'react-native-vector-icons/Feather';
-import Video from 'react-native-video';
+const VideoPlayer = require('react-native-video-player').default;
 
 import Colors from '../constants/Colors';
 import { getReadableTimeSince } from '../lib/utils';
@@ -104,6 +103,9 @@ interface Props {
   clickableLinks: boolean
   swipeOut: boolean
   savePostImages: boolean
+
+  hidePostDetails: boolean
+  hidePostTitle: boolean
 }
 
 interface State {
@@ -256,15 +258,22 @@ export class Post extends React.Component<Props, State> {
     } else if (this.props.data.type === 'video') {
       postContent = (
         <View style={{ width: '100%', backgroundColor: Colors.lightBlack }}>
-          <Video source={{ uri: this.props.data.dataURL }}   // Can be a URL or a local file.
-            controls={true}
+          <VideoPlayer
+            video={{ uri: this.props.data.dataURL }}
             style={{
               flex: 1,
               width: '100%',
               aspectRatio: 1,
             }}
-            repeat={true}
-            resizeMode={'cover'}
+            videoWidth={720}
+            resizeMode={'contain'}
+
+            autoplay={true}
+            defaultMuted={true}
+            loop={true}
+
+            hideControlsOnStart={true}
+            pauseOnPress={true}
           />
         </View>
       );
@@ -276,8 +285,8 @@ export class Post extends React.Component<Props, State> {
           paddingTop: 5,
           paddingHorizontal: 5,
         }}>
-          {title}
-          {postInfo}
+          {!this.props.hidePostTitle && title}
+          {!this.props.hidePostDetails && postInfo}
         </View>
         { postContent }
       </>

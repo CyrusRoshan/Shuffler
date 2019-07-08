@@ -17,6 +17,8 @@ export interface Props {
   swipeOut: boolean
   clickableLinks: boolean
   linkPrefix: string
+  hidePostDetails: boolean
+  hidePostTitle: boolean
 }
 
 export interface State {
@@ -44,14 +46,16 @@ export default class PostScroller extends Component<Props, State> {
         windowSize={5}
         maxToRenderPerBatch={5}
         initialNumToRender={2}
-        renderItem={(info) => (
+        renderItem={(data) => (
           <Post
-            index={info.index}
-            cache={this.props.cache} data={info.item}
-            clickableLinks={this.props.clickableLinks}
-            savePostImages={this.props.savePostImages}
-            linkPrefix={this.props.linkPrefix}
-            swipeOut={this.props.swipeOut}
+              index={data.index}
+              cache={this.props.cache} data={data.item}
+              clickableLinks={this.props.clickableLinks}
+              savePostImages={this.props.savePostImages}
+              linkPrefix={this.props.linkPrefix}
+              swipeOut={this.props.swipeOut}
+              hidePostDetails={this.props.hidePostDetails}
+              hidePostTitle={this.props.hidePostTitle}
             />
         )}
         keyExtractor={(item, index) => item.prefixed_id }
