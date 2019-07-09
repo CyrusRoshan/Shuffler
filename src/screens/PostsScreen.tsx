@@ -7,7 +7,7 @@ import { NavigationScreenProp } from 'react-navigation';
 
 import PostScroller from '../components/PostScroller';
 import Colors from '../constants/Colors';
-import { PostData } from '../components/Post';
+import { PostData, PostSettings } from '../components/Post';
 import { storage } from '../lib/storage';
 import { shuffle } from '../lib/utils';
 import { PostCache } from '../components/PostCache';
@@ -26,12 +26,7 @@ interface State {
   isEmpty?: boolean,
   postCache?: PostCache,
   postData: PostData[],
-  clickableLinks: boolean,
-  savePostImages: boolean,
-  swipeOut: boolean,
-  linkPrefix: string,
-  hidePostDetails: boolean,
-  hidePostTitle: boolean,
+  postSettings: PostSettings,
 }
 
 export default class PostsScreen extends Component<Props, State> {
@@ -40,12 +35,14 @@ export default class PostsScreen extends Component<Props, State> {
 
     this.state = {
       postData: [],
-      clickableLinks: false,
-      savePostImages: false,
-      swipeOut: false,
-      linkPrefix: '',
-      hidePostDetails: false,
-      hidePostTitle: false,
+      postSettings: {
+        clickableLinks: false,
+        savePostImages: false,
+        swipeOut: false,
+        linkPrefix: '',
+        hidePostDetails: false,
+        hidePostTitle: false,
+      }
     }
     this.getPostsData();
   }
@@ -92,23 +89,20 @@ export default class PostsScreen extends Component<Props, State> {
     const postCache = new PostCache({postData, offline: this.props.offline, saveForOffline});
 
     // Get settings and pass on
-    const savePostImages = await storage.settings().savePostImages().get();
-    const clickableLinks = await storage.settings().clickableLinks().get();
-    const swipeOut = await storage.settings().swipeOut().get();
-    const linkPrefix = await storage.settings().linkPrefix().get() || "https://www.reddit.com";
-    const hidePostDetails = await storage.settings().hidePostDetails().get();
-    const hidePostTitle = await storage.settings().hidePostTitle().get();
+    const postSettings = {
+      savePostImages: await storage.settings().savePostImages().get(),
+      clickableLinks: await storage.settings().clickableLinks().get(),
+      swipeOut: await storage.settings().swipeOut().get(),
+      linkPrefix: await storage.settings().linkPrefix().get() || "https://www.reddit.com",
+      hidePostDetails: await storage.settings().hidePostDetails().get(),
+      hidePostTitle: await storage.settings().hidePostTitle().get(),
+    }
 
     // Save shuffled post data to state
     this.setState({
       postCache,
       postData,
-      savePostImages,
-      clickableLinks,
-      swipeOut,
-      linkPrefix,
-      hidePostDetails,
-      hidePostTitle
+      postSettings,
     })
   }
 
@@ -118,12 +112,7 @@ export default class PostsScreen extends Component<Props, State> {
       body = <PostScroller
         cache={this.state.postCache}
         postData={this.state.postData}
-        clickableLinks={this.state.clickableLinks}
-        savePostImages={this.state.savePostImages}
-        swipeOut={this.state.swipeOut}
-        linkPrefix={this.state.linkPrefix}
-        hidePostDetails={this.state.hidePostDetails}
-        hidePostTitle={this.state.hidePostTitle}
+        postSettings={this.state.postSettings}
         />
     }
 

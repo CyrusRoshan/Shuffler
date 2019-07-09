@@ -6,19 +6,13 @@ import {
 } from 'react-native';
 
 import Colors from '../constants/Colors';
-import { Post, PostData } from './Post';
+import { Post, PostData, PostSettings } from './Post';
 import { PostCache } from './PostCache';
 
 export interface Props {
   cache: PostCache,
-  postData: PostData[]
-
-  savePostImages: boolean
-  swipeOut: boolean
-  clickableLinks: boolean
-  linkPrefix: string
-  hidePostDetails: boolean
-  hidePostTitle: boolean
+  postData: PostData[],
+  postSettings: PostSettings,
 }
 
 export interface State {
@@ -35,7 +29,6 @@ export default class PostScroller extends Component<Props, State> {
   }
 
   render() {
-    console.log(this.props.linkPrefix)
     return (
       <FlatList
         style={styles.root}
@@ -49,13 +42,10 @@ export default class PostScroller extends Component<Props, State> {
         renderItem={(data) => (
           <Post
               index={data.index}
-              cache={this.props.cache} data={data.item}
-              clickableLinks={this.props.clickableLinks}
-              savePostImages={this.props.savePostImages}
-              linkPrefix={this.props.linkPrefix}
-              swipeOut={this.props.swipeOut}
-              hidePostDetails={this.props.hidePostDetails}
-              hidePostTitle={this.props.hidePostTitle}
+              cache={this.props.cache}
+              data={data.item}
+
+              settings={this.props.postSettings}
             />
         )}
         keyExtractor={(item, index) => item.prefixed_id }

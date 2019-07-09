@@ -96,9 +96,12 @@ export const ParsePost = (data: any): PostData|undefined => {
 interface Props {
   index: number,
   cache: PostCache,
-
   data: PostData,
 
+  settings: PostSettings,
+}
+
+export interface PostSettings {
   linkPrefix: string,
   clickableLinks: boolean
   swipeOut: boolean
@@ -161,8 +164,8 @@ export class Post extends React.Component<Props, State> {
   }
 
   clickFunc = (path: string) => () => {
-    if (this.props.clickableLinks) {
-      Linking.openURL(this.props.linkPrefix + path);
+    if (this.props.settings.clickableLinks) {
+      Linking.openURL(this.props.settings.linkPrefix + path);
     }
   }
 
@@ -285,14 +288,14 @@ export class Post extends React.Component<Props, State> {
           paddingTop: 5,
           paddingHorizontal: 5,
         }}>
-          {!this.props.hidePostTitle && title}
-          {!this.props.hidePostDetails && postInfo}
+          {!this.props.settings.hidePostTitle && title}
+          {!this.props.settings.hidePostDetails && postInfo}
         </View>
         { postContent }
       </>
     )
 
-    if (!this.props.swipeOut) {
+    if (!this.props.settings.swipeOut) {
       return <View style={styles.rootContainer}>
         {content}
       </View>
