@@ -7,9 +7,11 @@ import {
   View,
   Dimensions,
   Linking,
+  Button,
+  TouchableOpacity,
 } from 'react-native';
 
-import Swipeout from 'react-native-swipeout';
+import { SwipeRow } from 'react-native-swipe-list-view';
 import Feather from 'react-native-vector-icons/Feather';
 const VideoPlayer = require('react-native-video-player').default;
 
@@ -18,6 +20,8 @@ import { getReadableTimeSince } from '../lib/utils';
 import { PostCache } from './PostCache';
 import { storage } from '../lib/storage';
 import api from '../lib/api';
+
+const BUTTON_WIDTH = 80;
 
 export type PostType = 'image' | 'video'
 export interface PostData {
@@ -196,23 +200,6 @@ export class Post extends React.Component<Props, State> {
     api.call().unsave(this.props.data.prefixed_id);
   }
 
-  swipeoutButtons = [
-    {
-      text: "Uncache",
-      color: Colors.white,
-      backgroundColor: Colors.lightOrange,
-      underlayColor: Colors.darkOrange,
-      onPress: this.removePost.bind(this),
-    },
-    {
-      text: "Delete",
-      color: Colors.white,
-      backgroundColor: Colors.lightRed,
-      underlayColor: Colors.darkRed,
-      onPress: this.deletePost.bind(this),
-    },
-  ]
-
   readableTimeDiff = getReadableTimeSince(this.props.data.created_utc * 1000); // This date is in s not ms
 
   render() {
@@ -232,14 +219,14 @@ export class Post extends React.Component<Props, State> {
     const postInfo = (
       <View style={styles.container}>
         <Text
-          style={[styles.containerElement, styles.regularText, styles.descLinks, { color: Colors.darkGreen }]}
+          style={[styles.containerElement, styles.regularText, { color: Colors.darkGreen }]}
           onPress={this.clickFunc("/u/" + this.props.data.author)}>u/{this.props.data.author}</Text>
 
         <Text
-          style={[styles.containerElement, styles.regularText, styles.descLinks, { color: Colors.darkYellow }]}
+          style={[styles.containerElement, styles.regularText, { color: Colors.darkYellow }]}
           onPress={this.clickFunc("/r/" + this.props.data.subreddit)}>r/{this.props.data.subreddit}</Text>
 
-        <View style={[styles.containerElement, { flexDirection: 'row', justifyContent: 'center' }, styles.descLinks]}>
+        <View style={[styles.containerElement, { flexDirection: 'row', justifyContent: 'center' }]}>
           <Feather style={[styles.regularText, { color: Colors.darkWhite }]} name='clock' size={30} />
           <Text style={[styles.regularText, { color: Colors.darkWhite }]}> {this.readableTimeDiff} ago</Text>
         </View>
@@ -282,25 +269,6 @@ export class Post extends React.Component<Props, State> {
       );
     }
 
-    const content = (
-      <>
-        <View style={{
-          paddingTop: 5,
-          paddingHorizontal: 5,
-        }}>
-          {!this.props.settings.hidePostTitle && title}
-          {!this.props.settings.hidePostDetails && postInfo}
-        </View>
-        { postContent }
-      </>
-    )
-
-    if (!this.props.settings.swipeOut) {
-      return <View style={styles.rootContainer}>
-        {content}
-      </View>
-    }
-
     return (
       <Animated.View style={[styles.rootContainer, {
           left: this.state.animVal.interpolate({
@@ -312,12 +280,33 @@ export class Post extends React.Component<Props, State> {
             outputRange: ['100%', '0%']  // 0 : 150, 0.5 : 75, 1 : 0
           }),
         }]}>
-          <Swipeout
-            backgroundColor={'transparent'}
-            sensitivity={-1000}
-            right={this.swipeoutButtons}>
-            {content}
-          </Swipeout>
+          {!this.props.settings.hidePostTitle && title}
+          {!this.props.settings.hidePostDetails && postInfo}
+          <SwipeRow
+            recalculateHiddenLayout={true}
+
+            disableRightSwipe={true}
+            rightOpenValue={-BUTTON_WIDTH}
+
+            friction={70}
+            tension={30}
+            swipeToOpenPercent={75}
+            swipeToClosePercent={25}
+          >
+            <View style={styles.backRow}>
+              <TouchableOpacity
+                style={[styles.swipeoutButton, styles.deleteButton]}
+                onPress={() => this.deletePost()}
+              >
+                <Text style={styles.buttonText}>
+                  Delete
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <View>
+              {postContent}
+            </View>
+          </SwipeRow>
         </Animated.View>
     )
   }
@@ -358,11 +347,6 @@ const styles = StyleSheet.create({
     paddingRight: 5,
   },
 
-  descLinks: {
-    // flex: 1,
-    // flexShrink: 0,
-  },
-
   regularText: {
     fontSize: 20,
     lineHeight: 30,
@@ -385,5 +369,29 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     alignSelf: 'stretch',
     color: Colors.lightBlue
+  },
+
+  backRow: {
+    backgroundColor: 'red',
+    flex: 1,
+  },
+
+  swipeoutButton: {
+    bottom: 0,
+    top: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'absolute',
+    width: BUTTON_WIDTH
+  },
+
+  buttonText: {
+    color: Colors.white,
+    fontSize: 18,
+  },
+
+  deleteButton: {
+    backgroundColor: 'red',
+    right: 0,
   },
 });

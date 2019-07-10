@@ -35,20 +35,26 @@ export default class PostScroller extends Component<Props, State> {
         horizontal={false}
         showsHorizontalScrollIndicator={false}
         showsVerticalScrollIndicator={true}
-        data={this.props.postData}
+
         windowSize={5}
         maxToRenderPerBatch={5}
         initialNumToRender={2}
-        renderItem={(data) => (
-          <Post
-              index={data.index}
-              cache={this.props.cache}
-              data={data.item}
 
-              settings={this.props.postSettings}
-            />
-        )}
-        keyExtractor={(item, index) => item.prefixed_id }
+        data={this.props.postData}
+        keyExtractor={(item, index) => item.prefixed_id}
+        renderItem={
+          (data: any) => {
+            return (
+              <Post
+                index={data.index}
+                cache={this.props.cache}
+                data={data.item}
+
+                settings={this.props.postSettings}
+              />
+            )
+          }
+        }
       />
     );
   };
