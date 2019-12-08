@@ -60,6 +60,12 @@ export function shuffle(arr: any[]) {
   }
 }
 
+// Simple reorder
+export function reorder(arr: any[]) {
+  var split = Math.floor(Math.random() * (arr.length + 1));
+  arr.unshift(...arr.splice(split, arr.length - split));
+}
+
 export function getReadableTimeSince(dateInMs: number) {
   const now = Date.now();
   return getReadableTime(now - dateInMs);

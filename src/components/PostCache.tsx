@@ -1,16 +1,19 @@
 import { Image } from 'react-native';
-import { PostData } from './Post';
+import { PostData } from '../lib/postdata';
 import { storage, ImageData } from '../lib/storage';
+import api from '../lib/api';
 
 interface Props {
-  postData: PostData[],
+  postIDs: string[],
+
+  videoSupport?: boolean,
   offline?: boolean,
   saveForOffline?: boolean,
 }
 
 // TODO: try this as a KV pair, then use it as a global object incorporated into storage, if it improves speed.
 interface State {
-  cache: (ImageData|undefined)[]
+
 }
 
 // Not really a react component because it doesn't get rendered
@@ -20,44 +23,75 @@ export class PostCache {
 
   constructor(props: Props) {
     this.props = props;
-    this.state = {
-      cache: new Array(props.postData.length),
+  }
+
+  postDataCache: Record<string, (PostData | undefined)> = {};
+  imageDataCache: Record<string, (ImageData | undefined)> = {};
+
+  async deletePost(id: string, prefixed_id: string) {
+    // Delete from disk
+    storage.imageData().delete(prefixed_id);
+    storage.postData().delete(prefixed_id);
+    storage.postIDList.deleteFrom(prefixed_id);
+    storage.offlinePostIDList.deleteFrom(prefixed_id);
+    delete this.postDataCache[id];
+    delete this.imageDataCache[id];
+    api.call().unsave(prefixed_id);
+  }
+
+  async getPostData(postID: string): Promise<PostData|undefined> {
+    const cached = this.postDataCache[postID];
+    if (cached) {
+      return cached;
     }
+
+    const data = await storage.postData().get(postID);
+    if (!data) {
+      return;
+    }
+    if (data.type === 'video' && !this.props.videoSupport) {
+      return;
+    }
+
+    this.postDataCache[postID] = data
+    return data;
   }
 
   // either get from cache (fast)
   // get from saved disk (slow)
   // or get from url (slower)
-  async get(index: number): Promise<ImageData|undefined> {
+  async getImageData(postID: string): Promise<ImageData|undefined> {
     // Check cache
-    const cached = this.state.cache[index]
+    const cached = this.imageDataCache[postID]
     if (cached) {
       return cached;
     }
 
-    // Get postdata from initial array
-    const postData = this.props.postData[index];
-
+    // Get postdata
+    const postData = await this.getPostData(postID);
+    if (!postData) {
+      return;
+    }
     // Check saved disk
     const saved = await storage.imageData().get(postData.prefixed_id);
     if (saved) {
-      this.state.cache[index] = saved;
+      this.imageDataCache[postID] = saved;
       return saved;
     }
 
     if (this.props.offline) {
-      return undefined;
+      return;
     }
 
     // Check URL
-    const fetched = await this.getFromURL(postData.dataURL);
+    const fetched = await this.getImageDataFromURL(postData.dataURL);
     if (fetched) {
       // Offline save
       if (this.props.saveForOffline) {
         storage.imageData().save(postData.prefixed_id, fetched);
         storage.offlinePostIDList.add([postData.prefixed_id])
       }
-      this.state.cache[index] = fetched;
+      this.imageDataCache[postID] = fetched;
       return fetched
     }
 
@@ -65,7 +99,7 @@ export class PostCache {
     throw(`Could not fetch ${postData.dataURL}`)
   }
 
-  async getFromURL(url: string): Promise<ImageData|undefined> {
+  async getImageDataFromURL(url: string): Promise<ImageData|undefined> {
     const fetchedImageData = await this.imageBlob(url);
     const imageSize = await this.imageSize(fetchedImageData);
 

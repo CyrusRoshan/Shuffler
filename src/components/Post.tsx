@@ -18,89 +18,13 @@ const VideoPlayer = require('react-native-video-player').default;
 import Colors from '../constants/Colors';
 import { getReadableTimeSince } from '../lib/utils';
 import { PostCache } from './PostCache';
-import { storage } from '../lib/storage';
-import api from '../lib/api';
+import { PostData } from '../lib/postdata';
 
 const BUTTON_WIDTH = 80;
 
-export type PostType = 'image' | 'video'
-export interface PostData {
-  url: string,
-  dataURL: string,
-  author: string,
-  title: string,
-  subreddit: string,
-  id: string,
-  prefixed_id: string,
-  permalink: string,
-  created_utc: number,
-  type: PostType,
-}
-
-export const ParsePost = (data: any): PostData|undefined => {
-  // Verify bare minimum data
-  if (
-    !data.url ||
-    !data.author ||
-    !data.title ||
-    !data.subreddit ||
-    !data.id ||
-    !data.name ||
-    !data.permalink ||
-    !data.created_utc
-  ) {
-    return undefined;
-  }
-  data.prefixed_id = data.name;
-
-  // Assign type
-  var type: PostType|undefined;
-  if (data.post_hint === 'image') {
-    data.dataURL = data.url;
-    type = 'image';
-  }
-  else if (
-    String(data.url).endsWith(".jpg") ||
-    String(data.url).endsWith(".png") ||
-    String(data.url).endsWith(".jpeg")
-  ) {
-    data.dataURL = data.url;
-    type = 'image';
-  }
-  else if (
-    data.secure_media &&
-    data.secure_media.reddit_video &&
-    data.secure_media.reddit_video.fallback_url
-  ) {
-    data.dataURL = data.secure_media.reddit_video.fallback_url;
-    type = 'video';
-  }
-  else if (data.post_hint === 'hosted:video') {
-    data.dataURL = data.url;
-    type = 'video';
-  }
-  else if (
-    data.preview &&
-    data.preview.reddit_video_preview &&
-    data.preview.reddit_video_preview.fallback_url
-  ) {
-    data.dataURL = data.preview.reddit_video_preview.fallback_url;
-    type = 'video';
-  }
-
-  // Check type was assigned
-  if (!type) {
-    return undefined;
-  }
-  data.type = type;
-
-  return data as PostData;
-}
-
 interface Props {
-  index: number,
+  postID: string,
   cache: PostCache,
-  data: PostData,
 
   settings: PostSettings,
 }
@@ -116,11 +40,12 @@ export interface PostSettings {
 }
 
 interface State {
-  hidden?: boolean,
   rawImg?: string,
   imageHeight?: number,
 
-  animVal: Animated.Value
+  postData?: PostData,
+
+  animVal: Animated.Value,
 }
 
 export class Post extends React.Component<Props, State> {
@@ -131,26 +56,20 @@ export class Post extends React.Component<Props, State> {
     }
   }
 
-  _isMounted = false;
-
-  componentDidMount() {
-    this._isMounted = true;
-    if (this.props.data.type === 'image') {
-      this.getImageData();
+  async componentDidMount() {
+    var postData = await this.props.cache.getPostData(this.props.postID);
+    if (postData) {
+      this.setState({postData})
+      if (postData.type === 'image') {
+        await this.getImageData();
+      }
     }
-  }
-
-  componentWillUnmount() {
-    this._isMounted = false;
   }
 
   // Get base64 imagedata and image size for render
   async getImageData() {
-    const imageData = await this.props.cache.get(this.props.index);
+    const imageData = await this.props.cache.getImageData(this.props.postID);
     if (!imageData) {
-      this.setState({
-        hidden: true
-      })
       return;
     }
 
@@ -159,12 +78,10 @@ export class Post extends React.Component<Props, State> {
     const scaleFactor = imageData.width / screenWidth;
     const imageHeight = imageData.height / scaleFactor;
 
-    if (this._isMounted) {
-      this.setState({
-        rawImg: imageData.data,
-        imageHeight,
-      })
-    }
+    this.setState({
+      rawImg: imageData.data,
+      imageHeight,
+    })
   }
 
   clickFunc = (path: string) => () => {
@@ -173,40 +90,28 @@ export class Post extends React.Component<Props, State> {
     }
   }
 
-  removePost(callback?: Function) {
-    return new Promise(resolve => {
-      Animated.timing(this.state.animVal, {
-        toValue: 1,
-        duration: 500,
-      }).start(async () => {
-        // Delete from disk
-        storage.imageData().delete(this.props.data.prefixed_id);
-        storage.postData().delete(this.props.data.prefixed_id);
-        storage.postIDList.deleteFrom(this.props.data.prefixed_id);
-        storage.offlinePostIDList.deleteFrom(this.props.data.prefixed_id);
+  removePost() {
+    if (!this.state.postData) {
+      return;
+    }
+    Animated.timing(this.state.animVal, {
+      toValue: 1,
+      duration: 500,
+    }).start(async () => {
+      if (!this.state.postData) {
+        console.error("Postdata should be defined...");
+        return;
+      }
 
-        // Stop rendering
-        this.setState({
-          hidden: true,
-        }, resolve)
-      });
+      // Delete from disk
+      this.props.cache.deletePost(this.props.postID, this.state.postData.prefixed_id);
+      this.setState({ postData: undefined });
     });
   }
 
-  async deletePost() {
-    await this.removePost();
-
-    // Also unsave from reddit
-    api.call().unsave(this.props.data.prefixed_id);
-  }
-
-  readableTimeDiff = getReadableTimeSince(this.props.data.created_utc * 1000); // This date is in s not ms
 
   render() {
-    if (this.state.hidden) {
-      return <></>;
-    }
-    if (this.props.data.type === 'image' && !this.state.rawImg) {
+    if (!this.state.postData || this.state.postData.type === 'image' && !this.state.rawImg) {
       return <View style={styles.imagePlaceholder}></View>;
     }
 
@@ -214,27 +119,29 @@ export class Post extends React.Component<Props, State> {
       <Text style={styles.postTitle}
         adjustsFontSizeToFit={true}
         numberOfLines={4}
-        onPress={this.clickFunc(this.props.data.permalink)}>{this.props.data.title}</Text>
+        onPress={this.clickFunc(this.state.postData.permalink)}>{this.state.postData.title}</Text>
     );
+
+    const readableTimeDiff = getReadableTimeSince(this.state.postData.created_utc * 1000); // This date is in s not ms
     const postInfo = (
       <View style={styles.container}>
         <Text
           style={[styles.containerElement, styles.regularText, { color: Colors.darkGreen }]}
-          onPress={this.clickFunc("/u/" + this.props.data.author)}>u/{this.props.data.author}</Text>
+          onPress={this.clickFunc("/u/" + this.state.postData.author)}>u/{this.state.postData.author}</Text>
 
         <Text
           style={[styles.containerElement, styles.regularText, { color: Colors.darkYellow }]}
-          onPress={this.clickFunc("/r/" + this.props.data.subreddit)}>r/{this.props.data.subreddit}</Text>
+          onPress={this.clickFunc("/r/" + this.state.postData.subreddit)}>r/{this.state.postData.subreddit}</Text>
 
         <View style={[styles.containerElement, { flexDirection: 'row', justifyContent: 'center' }]}>
           <Feather style={[styles.regularText, { color: Colors.darkWhite }]} name='clock' size={30} />
-          <Text style={[styles.regularText, { color: Colors.darkWhite }]}> {this.readableTimeDiff} ago</Text>
+          <Text style={[styles.regularText, { color: Colors.darkWhite }]}> {readableTimeDiff} ago</Text>
         </View>
       </View>
     );
 
     var postContent;
-    if (this.props.data.type === 'image') {
+    if (this.state.postData.type === 'image') {
       postContent = (
         <View style={{ width: '100%', backgroundColor: Colors.lightBlack }}>
           <Image style={{
@@ -245,11 +152,11 @@ export class Post extends React.Component<Props, State> {
             }} source={{ uri: this.state.rawImg }} />
         </View>
       );
-    } else if (this.props.data.type === 'video') {
+    } else if (this.state.postData.type === 'video') {
       postContent = (
         <View style={{ width: '100%', backgroundColor: Colors.lightBlack }}>
           <VideoPlayer
-            video={{ uri: this.props.data.dataURL }}
+            video={{ uri: this.state.postData.dataURL }}
             style={{
               flex: 1,
               width: '100%',
@@ -263,7 +170,6 @@ export class Post extends React.Component<Props, State> {
             loop={true}
 
             hideControlsOnStart={true}
-            pauseOnPress={true}
           />
         </View>
       );
@@ -296,7 +202,7 @@ export class Post extends React.Component<Props, State> {
             <View style={styles.backRow}>
               <TouchableOpacity
                 style={[styles.swipeoutButton, styles.deleteButton]}
-                onPress={() => this.deletePost()}
+                onPress={() => this.removePost()}
               >
                 <Text style={styles.buttonText}>
                   Delete

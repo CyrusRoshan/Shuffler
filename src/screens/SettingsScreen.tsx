@@ -6,7 +6,7 @@ import { ifIphoneX } from 'react-native-iphone-x-helper';
 import { NavigationScreenProp } from 'react-navigation';
 
 import Colors from '../constants/Colors';
-import { ParsePost, PostData} from '../components/Post';
+import { ParsePost, PostData} from '../lib/postdata';
 import {api, ListingParams, LoginURL} from '../lib/api';
 import { storage } from '../lib/storage';
 import { updater, getReadableTimeUntil } from '../lib/utils';
@@ -27,6 +27,7 @@ interface State {
 
   savedItemCount?: number,
   invalidItems?: number,
+  newItemCount?: number,
 
   populating: boolean,
   totalToFetch: number,
@@ -62,18 +63,18 @@ export default class SettingsScreen extends Component<Props, State> {
   }
 
   // Get count of saved items
-  async getSavedItemCount() {
+  async getSavedItemCount(callback?: () => void) {
     const savedItems = await storage.postIDList.get();
     if (!savedItems) {
       this.setState({
         savedItemCount: 0,
-      })
+      }, callback)
       return;
     }
 
     this.setState({
       savedItemCount: savedItems.length,
-    })
+    }, callback)
   }
 
   // Save navigation state params if we've been given them
@@ -244,7 +245,13 @@ export default class SettingsScreen extends Component<Props, State> {
     this.setState({
       populating: false,
     });
-    this.getSavedItemCount();
+
+    var prevSavedItemCount = this.state.savedItemCount;
+    this.getSavedItemCount(() => {
+      this.setState({
+        newItemCount: (this.state.savedItemCount || 0) - (prevSavedItemCount || 0),
+      });
+    });
     return true;
   }
 
@@ -328,6 +335,9 @@ export default class SettingsScreen extends Component<Props, State> {
         <>
           <Text style={styles.regularText}>Logged in, <Text style={{color: Colors.darkYellow}}>{this.state.name}</Text>!</Text>
           <Text style={styles.regularText}>Cached post count: {this.state.savedItemCount}</Text>
+          {this.state.newItemCount !== undefined &&
+            <Text style={styles.regularText}>New item count: {this.state.newItemCount}</Text>
+          }
           {debugInfo}
         </>
       )

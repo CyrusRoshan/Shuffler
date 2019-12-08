@@ -7,9 +7,9 @@ import { NavigationScreenProp } from 'react-navigation';
 
 import PostScroller from '../components/PostScroller';
 import Colors from '../constants/Colors';
-import { PostData, PostSettings } from '../components/Post';
+import { PostSettings } from '../components/Post';
 import { storage } from '../lib/storage';
-import { shuffle } from '../lib/utils';
+import { shuffle, reorder } from '../lib/utils';
 import { PostCache } from '../components/PostCache';
 
 export interface Props {
@@ -25,7 +25,7 @@ interface PostImageData {
 interface State {
   isEmpty?: boolean,
   postCache?: PostCache,
-  postData: PostData[],
+  postIDs: string[],
   postSettings: PostSettings,
 }
 
@@ -34,7 +34,7 @@ export default class PostsScreen extends Component<Props, State> {
     super(props);
 
     this.state = {
-      postData: [],
+      postIDs: [],
       postSettings: {
         clickableLinks: false,
         savePostImages: false,
@@ -63,7 +63,7 @@ export default class PostsScreen extends Component<Props, State> {
     }
 
     // Shuffle posts
-    shuffle(postIDs);
+    reorder(postIDs);
 
     // Whether to filter out video posts or not
     var videoSupport = await storage.settings().experimentalVideoSupport().get()
@@ -71,22 +71,14 @@ export default class PostsScreen extends Component<Props, State> {
       videoSupport = false; // No support for offline videos yet (see https://github.com/react-native-community/react-native-video/issues/266)
     }
 
-    // Get post data
-    var postData: PostData[] = [];
-    for (var i = 0; i < postIDs.length; i++) {
-      const data = await storage.postData().get(postIDs[i]);
-      if (!data) {
-        continue;
-      }
-      if (data.type === 'video' && !videoSupport) {
-        continue;
-      }
-      postData.push(data);
-    }
-
     // Create post cache
     const saveForOffline = await storage.settings().savePostImages().get();
-    const postCache = new PostCache({postData, offline: this.props.offline, saveForOffline});
+    const postCache = new PostCache({
+      postIDs,
+      offline: this.props.offline,
+      saveForOffline,
+      videoSupport,
+    });
 
     // Get settings and pass on
     const postSettings = {
@@ -101,7 +93,7 @@ export default class PostsScreen extends Component<Props, State> {
     // Save shuffled post data to state
     this.setState({
       postCache,
-      postData,
+      postIDs,
       postSettings,
     })
   }
@@ -111,7 +103,7 @@ export default class PostsScreen extends Component<Props, State> {
     if (this.state.postCache) {
       body = <PostScroller
         cache={this.state.postCache}
-        postData={this.state.postData}
+        postIDs={this.state.postIDs}
         postSettings={this.state.postSettings}
         />
     }

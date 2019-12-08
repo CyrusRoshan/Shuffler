@@ -6,12 +6,13 @@ import {
 } from 'react-native';
 
 import Colors from '../constants/Colors';
-import { Post, PostData, PostSettings } from './Post';
+import { PostData } from '../lib/postdata';
 import { PostCache } from './PostCache';
+import { Post, PostSettings } from './Post';
 
 export interface Props {
   cache: PostCache,
-  postData: PostData[],
+  postIDs: string[],
   postSettings: PostSettings,
 }
 
@@ -34,22 +35,20 @@ export default class PostScroller extends Component<Props, State> {
         style={styles.root}
         horizontal={false}
         showsHorizontalScrollIndicator={false}
-        showsVerticalScrollIndicator={true}
+        showsVerticalScrollIndicator={false}
 
-        windowSize={5}
+        windowSize={8}
         maxToRenderPerBatch={5}
         initialNumToRender={2}
 
-        data={this.props.postData}
-        keyExtractor={(item, index) => item.prefixed_id}
+        data={this.props.postIDs}
+        keyExtractor={(item, index) => item}
         renderItem={
           (data: any) => {
             return (
               <Post
-                index={data.index}
+                postID={this.props.postIDs[data.index]}
                 cache={this.props.cache}
-                data={data.item}
-
                 settings={this.props.postSettings}
               />
             )
