@@ -21,7 +21,8 @@ export interface Props {
 
 export interface State {
   autoscroll: boolean,
-  currentIndex: number
+  currentIndex: number,
+  continueIndex: number,
 }
 
 export default class PostScroller extends Component<Props, State> {
@@ -31,6 +32,7 @@ export default class PostScroller extends Component<Props, State> {
     this.state = {
       autoscroll: false,
       currentIndex: 0,
+      continueIndex: 0,
     }
   }
 
@@ -45,6 +47,14 @@ export default class PostScroller extends Component<Props, State> {
     this.setState({ currentIndex: newIndex });
   }
 
+  onViewableItemsChanged = (info: any) => {
+    if (info.viewableItems.length) {
+      this.setState({
+        continueIndex: info.viewableItems[0].index,
+      });
+    }
+  }
+
   render() {
     return (
       <>
@@ -56,7 +66,9 @@ export default class PostScroller extends Component<Props, State> {
               if (this.state.autoscroll) {
                 clearInterval(this.scrollInterval)
               } else {
-                this.scrollFunc();
+                if (this.flatlistRef) {
+                  this.setState({ currentIndex: this.state.continueIndex, }, this.scrollFunc)
+                }
                 this.scrollInterval = setInterval(this.scrollFunc, 5000)
               }
               this.setState({ autoscroll: !this.state.autoscroll })
@@ -70,6 +82,10 @@ export default class PostScroller extends Component<Props, State> {
           horizontal={false}
           showsHorizontalScrollIndicator={false}
           showsVerticalScrollIndicator={false}
+          onViewableItemsChanged={this.onViewableItemsChanged}
+          viewabilityConfig={{
+            itemVisiblePercentThreshold: 50
+          }}
 
           windowSize={8}
           maxToRenderPerBatch={5}
