@@ -155,14 +155,14 @@ export class Post extends React.Component<Props, State> {
       );
     } else if (this.state.postData.type === 'video') {
       postContent = (
-        <View style={[styles.postContent, { width: '100%', backgroundColor: Colors.lightBlack }]}>
+        <View style={{ width: '100%' }}>
           <VideoPlayer
             video={{ uri: this.state.postData.dataURL }}
-            style={{
+            style={[styles.postContent, {
               flex: 1,
               width: '100%',
               aspectRatio: 1,
-            }}
+            }]}
             videoWidth={720}
             resizeMode={'contain'}
 
