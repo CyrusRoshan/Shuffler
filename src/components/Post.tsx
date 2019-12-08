@@ -117,8 +117,7 @@ export class Post extends React.Component<Props, State> {
 
     const title = (
       <Text style={styles.postTitle}
-        adjustsFontSizeToFit={true}
-        numberOfLines={4}
+        numberOfLines={2}
         onPress={this.clickFunc(this.state.postData.permalink)}>{this.state.postData.title}</Text>
     );
 
@@ -143,18 +142,20 @@ export class Post extends React.Component<Props, State> {
     var postContent;
     if (this.state.postData.type === 'image') {
       postContent = (
-        <View style={{ width: '100%', backgroundColor: Colors.lightBlack }}>
-          <Image style={{
+        <View style={{ width: '100%' }}>
+          <Image style={[styles.postContent, {
               flex: 1,
               width: '100%',
               height: this.state.imageHeight || 200,
               resizeMode: 'cover',
-            }} source={{ uri: this.state.rawImg }} />
+            }]}
+            source={{ uri: this.state.rawImg }}
+          />
         </View>
       );
     } else if (this.state.postData.type === 'video') {
       postContent = (
-        <View style={{ width: '100%', backgroundColor: Colors.lightBlack }}>
+        <View style={[styles.postContent, { width: '100%', backgroundColor: Colors.lightBlack }]}>
           <VideoPlayer
             video={{ uri: this.state.postData.dataURL }}
             style={{
@@ -224,7 +225,8 @@ const styles = StyleSheet.create({
     marginBottom: 10,
 
     borderBottomColor: Colors.black,
-    borderBottomWidth: 2,
+    borderBottomWidth: 4,
+    borderRadius: 28,
   },
 
   imagePlaceholder: {
@@ -233,13 +235,19 @@ const styles = StyleSheet.create({
   },
 
   postTitle: {
-    fontSize: 20,
+    fontSize: 30,
     fontWeight: '900',
 
     textAlign: 'center',
     paddingHorizontal: 30,
     alignSelf: 'stretch',
     color: Colors.lightWhite,
+    textShadowColor: 'black',
+    textShadowRadius: 10,
+  },
+
+  postContent: {
+    borderRadius: 20,
   },
 
   container: {
@@ -279,6 +287,8 @@ const styles = StyleSheet.create({
 
   backRow: {
     backgroundColor: 'red',
+    borderRadius: 20,
+
     flex: 1,
   },
 
@@ -299,5 +309,7 @@ const styles = StyleSheet.create({
   deleteButton: {
     backgroundColor: 'red',
     right: 0,
+    borderBottomRightRadius: 20,
+    borderTopRightRadius: 20,
   },
 });

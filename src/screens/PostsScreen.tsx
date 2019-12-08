@@ -144,7 +144,7 @@ export default class PostsScreen extends Component<Props, State> {
 const styles = StyleSheet.create({
 	container: {
 		...ifIphoneX({
-			paddingTop: 50,
+			paddingTop: 45,
 		}, {
       paddingTop: 20,
     }),
@@ -154,8 +154,8 @@ const styles = StyleSheet.create({
 	},
 
 	title: {
-		fontSize: 40,
-		lineHeight: 50,
+		fontSize: 30,
+		lineHeight: 30,
 		fontWeight: '900',
 
 		marginBottom: 10,
